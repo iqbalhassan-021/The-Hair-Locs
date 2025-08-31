@@ -186,7 +186,7 @@ const CheckoutPage = () => {
         if (!querySnapshot.empty) {
           const doc = querySnapshot.docs[0];
           const data = doc.data();
-          const rate = parseFloat(data.shippingRate ?? 250);
+          const rate = parseFloat(data.shippingrate ?? 250);
           if (!isNaN(rate)) setShippingRate(rate);
         }
       } catch (error) {
@@ -292,7 +292,11 @@ const CheckoutPage = () => {
               Shipping Method
                 <div className='shipping' >
                   <p>courier</p>
-                  <p>RS.{shippingRate}</p>
+                  <p>
+                    <s>
+                    RS.250 
+                    </s> 
+                     -RS.{shippingRate}</p>
                 </div>
             </label>
 

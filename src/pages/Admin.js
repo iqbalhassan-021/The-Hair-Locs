@@ -202,6 +202,9 @@ useEffect(() => {
     e.preventDefault();
     const productData = {
       productImage: document.getElementById('productImage').value,
+      productImage1: document.getElementById('productImage1').value,
+      productImage2: document.getElementById('productImage2').value,
+      productImage3: document.getElementById('productImage3').value,
       productName: document.getElementById('productName').value,
       productPrice: document.getElementById('productPrice').value,
       productCode: document.getElementById('productCode').value,
@@ -245,6 +248,9 @@ useEffect(() => {
   const handleEditProduct = (product) => {
     setEditingProduct(product);
     document.getElementById('productImage').value = product.productImage || '';
+    document.getElementById('productImage1').value = product.productImage1 || '';
+    document.getElementById('productImage2').value = product.productImage2 || '';
+    document.getElementById('productImage3').value = product.productImage3 || '';
     document.getElementById('productName').value = product.productName || '';
     document.getElementById('productPrice').value = product.productPrice || '';
     document.getElementById('productCode').value = product.productCode || '';
@@ -776,9 +782,22 @@ const handleFloatingMessage = async (e) => {
                 </p>
                 <form id="productForm" onSubmit={handleProductSubmit}>
                   <div className="input-holder">
-                    <label htmlFor="productImage">Product Image Source</label>
+                    <label htmlFor="productImage">Main Image Source</label>
                     <input type="text" name="productImage" id="productImage" placeholder="src.." required />
                   </div>
+                  <div className="input-holder">
+                    <label htmlFor="productImage1">2:Product Image Source</label>
+                    <input type="text" name="productImage1" id="productImage1" placeholder="src.." required />
+                  </div>
+                  <div className="input-holder">
+                    <label htmlFor="productImage2">3:Product Image Source</label>
+                    <input type="text" name="productImage2" id="productImage2" placeholder="src.." required />
+                  </div>
+                  <div className="input-holder">
+                    <label htmlFor="productImage3">4:Product Image Source</label>
+                    <input type="text" name="productImage3" id="productImage3" placeholder="src.." required />
+                  </div>
+                  
                   <div className="input-holder">
                     <label htmlFor="productName">Product Name</label>
                     <input type="text" name="productName" id="productName" placeholder="Product Name.." required />
