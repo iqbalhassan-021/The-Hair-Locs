@@ -80,6 +80,7 @@ const addToCart = (product) => {
     }
 
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
     console.log('✅ Cart saved:', updatedCart); // ADD THIS
     alert(`${product.productName} added to cart!`);
   } catch (error) {

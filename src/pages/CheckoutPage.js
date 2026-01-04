@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navBar';
 import Footer from '../components/footer';
 import { useNavigate } from 'react-router-dom';
-import { getFirestore, collection, getDocs ,query, where, } from 'firebase/firestore';
+import { getFirestore, collection, getDocs ,query, where } from 'firebase/firestore';
 import BottomBar from '../components/BottomBar';
+import '../components/checkout.css';
 
 const provinces = [
   'Punjab',
@@ -17,162 +18,55 @@ const provinces = [
 
 const citiesByProvince = {
   Punjab: [
-'Ahmadpur East',
-'Ahmed Nager Chatha',
-'Ali Khan Abad',
-'Alipur',
-'Arifwala',
-'Attock',
-'Bhera',
-'Bhalwal',
-'Bahawalnagar',
-'Bahawalpur',
-'Bhakkar',
-'Burewala',
-'Chillianwala',
-'Chakwal',
-'Chichawatni',
-'Chiniot',
-'Chishtian',
-'Daska',
-'Darya Khan',
-'Dera Ghazi Khan',
-'Dhaular',
-'Dina',
-'Dinga',
-'Dipalpur',
-'Faisalabad',
-'Fateh Jang',
-'Ghakhar Mandi',
-'Gojra',
-'Gujranwala',
-'Gujrat',
-'Gujar Khan',
-'Hafizabad',
-'Haroonabad',
-'Hasilpur',
-'Haveli Lakha',
-'Jalalpur Jattan',
-'Jampur',
-'Jaranwala',
-'Jhang',
-'Jhelum',
-'Kalabagh',
-'Karor Lal Esan',
-'Kasur',
-'Kamalia',
-'Kāmoke',
-'Khanewal',
-'Khanpur',
-'Kharian',
-'Khushab',
-'Kot Adu',
-'Jauharabad',
-'Lahore',
-'Lalamusa',
-'Layyah',
-'Liaquat Pur',
-'Lodhran',
-'Malakwal',
-'Mamoori',
-'Mailsi',
-'Mandi Bahauddin',
-'Mian Channu',
-'Mianwali',
-'Multan',
-'Murree',
-'Muridke',
-'Mianwali Bangla',
-'Muzaffargarh',
-'Narowal',
-'Okara',
-'Renala Khurd',
-'Pakpattan',
-'Pattoki',
-'Pir Mahal',
-'Qaimpur',
-'Qila Didar Singh',
-'Rabwah',
-'Raiwind',
-'Rajanpur',
-'Rahim Yar Khan',
-'Rawalpindi',
-'Sadiqabad',
-'Safdarabad',
-'Sahiwal',
-'Sangla Hill',
-'Sarai Alamgir',
-'Sargodha',
-'Shakargarh',
-'Sheikhupura',
-'Sialkot',
-'Sohawa',
-'Soianwala',
-'Siranwali',
-'Talagang',
-'Taxila',
-'Toba Tek Singh',
-'Vehari',
-'Wah Cantonment',
-'Wazirabad',
-'Zafarwal',
-'Zahir Pir',
-'Zhob',
-'Ziauddin',
-'Ziarat',
-  'Zaman Park',
-  'Zafarwal',
-  'Zahir Pir',
-
+    'Ahmadpur East','Ahmed Nager Chatha','Ali Khan Abad','Alipur','Arifwala','Attock',
+    'Bahawalnagar','Bahawalpur','Bhakkar','Burewala','Chakwal','Chichawatni',
+    'Chiniot','Daska','Dera Ghazi Khan','Dipalpur','Faisalabad','Gojra',
+    'Gujranwala','Gujrat','Hafizabad','Jaranwala','Jhang','Jhelum','Kasur',
+    'Khanewal','Khanpur','Lahore','Layyah','Lodhran','Mandi Bahauddin',
+    'Mian Channu','Mianwali','Multan','Murree','Muzaffargarh','Narowal',
+    'Okara','Pakpattan','Rahim Yar Khan','Rawalpindi','Sahiwal','Sargodha',
+    'Sheikhupura','Sialkot','Toba Tek Singh','Vehari','Wah Cantonment','Wazirabad'
   ],
   Sindh: [
-    'Karachi', 'Hyderabad', 'Sukkur', 'Larkana', 'Mirpurkhas', 'Nawabshah', 'Thatta',
-    'Jacobabad', 'Shikarpur', 'Khairpur', 'Ghotki', 'Dadu', 'Umerkot', 'Tando Allahyar',
-    'Tando Muhammad Khan', 'Badin', 'Kashmore', 'Matiari', 'Jamshoro', 'Qambar Shahdadkot',
-    'Tharparkar'
+    'Karachi','Hyderabad','Sukkur','Larkana','Mirpurkhas','Nawabshah','Thatta'
   ],
   'Khyber Pakhtunkhwa': [
-    'Peshawar', 'Abbottabad', 'Mardan', 'Swat', 'Mingora', 'Mansehra', 'Kohat', 'Bannu',
-    'Charsadda', 'Dera Ismail Khan', 'Swabi', 'Nowshera', 'Hangu', 'Tank', 'Dir', 'Chitral',
-    'Haripur', 'Lakki Marwat', 'Buner', 'Battagram', 'Shangla'
+    'Peshawar','Abbottabad','Mardan','Swat','Mansehra','Charsadda'
   ],
   Balochistan: [
-    'Quetta', 'Gwadar', 'Turbat', 'Khuzdar', 'Sibi', 'Zhob', 'Loralai', 'Chaman', 'Dera Bugti',
-    'Nushki', 'Pishin', 'Kalat', 'Ziarat', 'Lasbela', 'Jaffarabad', 'Barkhan', 'Mastung',
-    'Kharan', 'Washuk', 'Awaran', 'Panjgur'
+    'Quetta','Gwadar','Turbat','Khuzdar','Zhob'
   ],
   'Islamabad Capital Territory': ['Islamabad'],
-  'Gilgit-Baltistan': [
-    'Gilgit', 'Skardu', 'Hunza', 'Gahkuch', 'Ghizer', 'Khaplu', 'Ghanche', 'Astore', 'Diamer',
-    'Nagar', 'Shigar'
-  ],
-  'Azad Jammu and Kashmir': [
-    'Muzaffarabad', 'Mirpur', 'Rawalakot', 'Kotli', 'Bagh', 'Hattian Bala', 'Pallandri',
-    'Bhimber', 'Haveli', 'Neelum'
-  ]
+  'Gilgit-Baltistan': ['Gilgit','Skardu'],
+  'Azad Jammu and Kashmir': ['Muzaffarabad','Mirpur']
 };
 
 const CheckoutPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [shippingRate, setShippingRate] = useState(0);
+  const [storeDetails, setStoreDetails] = useState(null);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     street: '',
+    address2: '',
     city: '',
     region: '',
     postalCode: '',
     country: 'Pakistan',
+    orderNotes: '',
     shippingMethod: 'Cash on Delivery',
-    paymentMethod: 'Cash on Delivery'
+    paymentMethod: 'cod'
   });
 
   const navigate = useNavigate();
   const [giftBoxes, setGiftBoxes] = useState([]);
-    const db = getFirestore(); // Initialize Firestore
-      const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const db = getFirestore();
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
     setCartItems(storedCart);
@@ -181,11 +75,12 @@ const CheckoutPage = () => {
   useEffect(() => {
     const fetchShippingRate = async () => {
       try {
-        const db = getFirestore();
         const querySnapshot = await getDocs(collection(db, 'storeDetails'));
         if (!querySnapshot.empty) {
           const doc = querySnapshot.docs[0];
           const data = doc.data();
+          setStoreDetails(data);
+
           const rate = parseFloat(data.shippingrate ?? 250);
           if (!isNaN(rate)) setShippingRate(rate);
         }
@@ -199,10 +94,7 @@ const CheckoutPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   useEffect(() => {
@@ -212,194 +104,150 @@ const CheckoutPage = () => {
       const boxes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setGiftBoxes(boxes);
     };
-
     fetchGiftBoxes();
   }, []);
 
-  const handleSelect = (box) => {
-    handleInputChange({ target: { name: 'giftBox', value: box.id } });
-    setDropdownOpen(false);
-  };
-
-  const selectedBox = giftBoxes.find(box => box.id === formData.giftBox);
-
-  const isFormFilled = Object.values(formData).every((value) => value.trim() !== '');
-  const itemsTotal = cartItems.reduce((sum, item) => sum + Number(item.productPrice) * item.quantity, 0);
-  const selectedGiftBox = giftBoxes.find(box => box.id === formData.giftBox);
-  const giftBoxPrice = selectedGiftBox ? Number(selectedGiftBox.productPrice) : 0;
-
+  const isFormFilled = Object.values(formData).every(v => String(v).trim() !== '');
+  const itemsTotal = cartItems.reduce((s, i) => s + Number(i.productPrice) * i.quantity, 0);
   const calculatedShipping = isFormFilled ? shippingRate : 0;
-  const grandTotal = itemsTotal + calculatedShipping + giftBoxPrice;
+  const grandTotal = itemsTotal + calculatedShipping;
 
 
+  const clearCart = () => {
+    localStorage.removeItem('cart');
+    setCartItems([]);
+  }
   return (
     <>
       <div className="sticky">
         <Navbar />
       </div>
 
-      <div className="checkout-container" style={{ padding: '2rem' }}>
-        <h1 className="checkout-title" style={{ color: 'var(--primary-color)' }}>
-          Checkout
-        </h1>
+      <form
+        className="checkout-wrapper"
+        action="https://api.web3forms.com/submit"
+        method="POST"
+      >
+        <input type="hidden" name="access_key" value="2f21b333-cfce-49ef-bd80-2c39a139de22" />
+        <input type="hidden" name="shippingRate" value={calculatedShipping} />
+        <input type="hidden" name="totalAmount" value={grandTotal.toFixed(2)} />
 
-        <div className="checkout-content" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-          <form
-            className="checkout-form"
-            action="https://api.web3forms.com/submit"
-            method="POST"
-            style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
-          >
-            {/* 2f21b333-cfce-49ef-bd80-2c39a139de22 */}
-            <input type="hidden" name="access_key" value="2f21b333-cfce-49ef-bd80-2c39a139de22" />
-            <input type="hidden" name="shippingRate" value={calculatedShipping} />
-            <input type="hidden" name="totalAmount" value={grandTotal.toFixed(2)} />
-
-            <label>First Name<input type="text" name="firstName" value={formData.firstName} required onChange={handleInputChange} /></label>
-            <label>Last Name<input type="text" name="lastName" value={formData.lastName} required onChange={handleInputChange} /></label>
-            <label>Email<input type="email" name="email" value={formData.email} required onChange={handleInputChange} /></label>
-            <label>Phone Number<input type="tel" name="phone" value={formData.phone} required onChange={handleInputChange} /></label>
-            <label>Country
-              <select type="select" name="country" value={formData.country} >
-                <option value="Pakistan">Pakistan</option>
-              </select>
-              </label>
-
-            <label>
-              Region / State / Province
-              <select name="region" value={formData.region} required onChange={handleInputChange}>
-                <option value="">Select Province</option>
-                {provinces.map((province) => (
-                  <option key={province} value={province}>{province}</option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              City
-              <select name="city" value={formData.city} required onChange={handleInputChange}>
-                <option value="">Select City</option>
-                {citiesByProvince[formData.region]?.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-            </label>
-
-            <label>Postal Code<input type="text" name="postalCode" value={formData.postalCode} required onChange={handleInputChange} /></label>
-            <label>Street Address<input type="text" name="street" value={formData.street} required onChange={handleInputChange} /></label>
-
-            <label>
-              Shipping Method
-                <div className='shipping' >
-                  <p>courier</p>
-                  <p>
-                    <s>
-                    RS.250 
-                    </s> 
-                     -RS.{shippingRate}</p>
-                </div>
-            </label>
-
-            <label>
-              Payment Method
-                <div className='shipping' >
-                  <p>Cash on delivery</p>
-                </div>
-              <small style={{ color: 'gray', fontSize: '0.9rem' }}>
-                <br />Payment will be collected in cash upon delivery.
-              </small>
-            </label>
-
-      <label>
-      Add a giftbox
-      <select name="giftBox" value={formData.giftBox} onChange={handleInputChange}>
-        <option value="">select giftbox</option>
-        {giftBoxes.map((box) => (
-          <option key={box.id} value={box.id}>
-            <p>
-              {box.productName || 'Giftbox'} - RS.{box.productPrice}
-            </p>
-          </option>
+        {cartItems.map((item, index) => (
+          <div key={item.id}>
+            <input type="hidden" name={`cart[${index}][productImage]`} value={item.productImage} />
+            <input type="hidden" name={`cart[${index}][productName]`} value={item.productName} />
+            <input type="hidden" name={`cart[${index}][quantity]`} value={item.quantity} />
+            <input type="hidden" name={`cart[${index}][productPrice]`} value={item.productPrice} />
+          </div>
         ))}
-      </select>
 
-      <small style={{ color: 'gray', fontSize: '0.9rem' }}>
-        <br />Select any giftbox to add to your order. If not, then leave it blank.
-      </small>
-    </label>
+        <div className="checkout-left">
+          <section className="checkout-section">
+            <h3>Contact</h3>
+            <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleInputChange} required />
+          </section>
 
-            {!isFormFilled && (
-              <p style={{ color: 'red', fontSize: '0.9rem' }}>
-                Shipping cost will be shown once all fields are filled.
-              </p>
-            )}
+          <section className="checkout-section">
+            <h3>Delivery</h3>
 
-            {cartItems.map((item, index) => (
-              <div key={item.id}>
-                <input type="hidden" name={`cart[${index}][productImage]`} value={item.productImage} />
-                <input type="hidden" name={`cart[${index}][productName]`} value={item.productName} />
-                <input type="hidden" name={`cart[${index}][quantity]`} value={item.quantity} />
-                <input type="hidden" name={`cart[${index}][productPrice]`} value={item.productPrice} />
-                <input type="hidden" name={`cart[${index}][productCode]`} value={item.productCode} />
-                <input type="hidden" name={`cart[${index}][productType]`} value={item.productType} />
-                <input type="hidden" name={`cart[${index}][productColor]`} value={item.productColor} />
-                <input type="hidden" name={`cart[${index}][productSize]`} value={item.productSize} />
-              </div>
-            ))}
-            {selectedGiftBox && (
-              <>
-                <input type="hidden" name="giftBoxName" value={selectedGiftBox.productName} />
-                <input type="hidden" name="giftBoxPrice" value={selectedGiftBox.productPrice} />
-                <br></br>
-                <input type="hidden" name="giftBoxPrice" value={selectedGiftBox.productImage} />
-              </>
-            )}
-
-            <div className="checkout-summary">
-              <div style={{ display: 'flex', marginBottom: '1rem' }}>
-                <h2 style={{ fontSize: '1.2rem'}}>Order Summary : RS.{itemsTotal}</h2>
-              </div>
-             
-              {cartItems.map((item) => (
-                <div className="summary-item" key={item.id} style={{ marginBottom: '0.5rem' }}>
-                  <div>
-                    <img src={item.productImage} alt={item.productName} style={{ width: '50px', height: '50px', objectFit: 'cover', marginRight: '1rem' ,borderRadius: '5px'}} />
-                    
-                  </div>
-                  <div>
-                  <span>{item.productName} x {item.quantity}</span>
-                  <br></br>
-                  <span>Rs. {item.productPrice * item.quantity}</span>
-                  </div>
-                  
-                </div>
-              ))}
-              {selectedGiftBox && (
-                  <div className="summary-item" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span>Giftbox: {selectedGiftBox.productName}</span>
-                    <span>Rs. {selectedGiftBox.productPrice}</span>
-                  </div>
-                )}
-
-              <div className="summary-shipping" style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem 0 0.5rem 0', color: isFormFilled ? 'gray' : 'red' }}>
-                <span>Shipping:</span>
-                <span>{isFormFilled ? `Rs. ${shippingRate.toFixed(2)}` : 'Fill address to calculate'}</span>
-              </div>
-
-              <hr />
-
-              <div className="summary-total" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontWeight: 'bold' }}>
-                <strong>Total:</strong>
-                <span>Rs. {grandTotal}</span>
-              </div>
+            <div className="name">
+              <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required />
+              <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required />
             </div>
 
-            <button type="submit" className="primary-button">
-              Place Order
-            </button>
-          </form>
+            <input type="text" name="street" placeholder="Address" value={formData.street} onChange={handleInputChange} required />
+
+            <input type="text" name="address2" placeholder="Apartment, suite, etc. (optional)" value={formData.address2} onChange={handleInputChange} />
+
+            <select name="region" value={formData.region} onChange={handleInputChange} required>
+              <option value="">Province</option>
+              {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+
+            <div className="citycode">
+              <select name="city" value={formData.city} onChange={handleInputChange} required>
+                <option value="">City</option>
+                {citiesByProvince[formData.region]?.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+
+              <input type="text" name="postalCode" placeholder="Postal Code" value={formData.postalCode} onChange={handleInputChange} required />
+            </div>
+
+            <input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleInputChange} />
+
+            <textarea name="orderNotes" placeholder="Order notes (optional)" value={formData.orderNotes} onChange={handleInputChange} />
+          </section>
+
+<section className="checkout-section accordion">
+  <h3>Payment</h3>
+
+  {/* Cash on Delivery */}
+  <label className="radio-wrapper">
+    <input
+      type="radio"
+      name="paymentMethod"
+      value="cod"
+      checked={formData.paymentMethod === 'cod'}
+      onChange={handleInputChange}
+    />
+    <span>Cash on Delivery (Rs. {shippingRate})</span>
+  </label>
+
+  {/* Bank Deposit */}
+  <label className="radio-wrapper">
+    <input
+      type="radio"
+      name="paymentMethod"
+      value="bank"
+      checked={formData.paymentMethod === 'bank'}
+      onChange={handleInputChange}
+      className='bank-radio'
+    />
+    <span>Bank Deposit</span>
+  </label>
+
+  {/* Bank details */}
+  <div
+    className="accordion-content-checkout"
+  >
+    {storeDetails && (
+        <p>
+      <strong>Bank:</strong> {storeDetails.bankName} <br/>
+        <strong>Account Holder:</strong> {storeDetails.bankHolder} <br/>
+        <strong>IBAN:</strong> {storeDetails.iban}
+        </p>
+    
+      
+    )}
+  </div>
+</section>
+
+          <button type="submit" className="complete-order" onClick={clearCart}>Complete Order</button>
         </div>
-      </div>
+
+        <div className="checkout-right">
+          <div className="order-items">
+            {cartItems.map(item => (
+              <div className="order-item" key={item.id}>
+                <img src={item.productImage} alt={item.productName} className="order-item-img" />
+                <div>
+                  <p>{item.productName}</p>
+                  <p>Qty: {item.quantity}</p>
+                  <p>Rs.{item.productPrice}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="order-summary">
+            <p>Subtotal: Rs.{itemsTotal}</p>
+            <p>Shipping: Rs.{calculatedShipping}</p>
+            <h4>Total: Rs.{grandTotal}</h4>
+          </div>
+        </div>
+      </form>
 
       <BottomBar />
       <Footer />

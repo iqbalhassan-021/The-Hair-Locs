@@ -12,21 +12,28 @@ const NewProducts = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Classic Bow');
+useEffect(() => {
+  const fetchCategories = async () => {
+    const db = getFirestore();
+    const categoriesCollection = collection(db, 'Category');
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const db = getFirestore();
-      const categoriesCollection = collection(db, 'Category');
-      try {
-        const querySnapshot = await getDocs(categoriesCollection);
-        const categoryList = querySnapshot.docs.map(doc => doc.data().categoryName);
-        setCategories(categoryList);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
+    try {
+      const querySnapshot = await getDocs(categoriesCollection);
+
+      const categoryList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        categoryName: doc.data().categoryName,
+        categoryImage: doc.data().categoryImage
+      }));
+
+      setCategories(categoryList);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  fetchCategories();
+}, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -163,6 +170,7 @@ const NewProducts = () => {
       }
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
+      
       toast.success(`${product.productName} added to cart!`, { position: 'bottom-right' });
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
@@ -174,43 +182,39 @@ const NewProducts = () => {
     <>
       <Navbar />
       <div className="page-container">
-        <div className="background"></div>
+       
         <div className="products-body">
           <div className="cover">
             <div className="products-partition">
-              <div className="categories-section">
-                <h2>Categories</h2>
-                <ul>
-                  {categories.length === 0 ? (
-                    <li>No categories available</li>
-                  ) : (
-                    categories.map((category, index) => (
-                      <li key={index}>
-                        <button
-                          onClick={() => handleCategoryClick(category)}
-                          className="category-button"
-                        >
-                          {category} - {getProductCount(category)}
-                        </button>
-                      </li>
-                    ))
-                  )}
-                </ul>
+<div className="categories-section">
+  <h2>Categories</h2>
 
-                <select
-                  name='category'
-                  id='category'
-                  className='filter'
-                  value={selectedCategory}
-                  onChange={handleSelectChange}
-                >
-                  {categories.map((category, index) => (
-                    <option key={index} value={category}>
-                      {category} - {getProductCount(category)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  <ul className='categories-list-new'>
+    {categories.length === 0 ? (
+      <li>No categories available</li>
+    ) : (
+      categories.map((category, index) => (
+        <li key={category.id || index}>
+          <button
+            onClick={() => handleCategoryClick(category.categoryName)}
+            className="category-button"
+          >
+            {category.categoryImage && (
+              <img
+                src={category.categoryImage}
+                alt={category.categoryName}
+                className="new-category-image"
+              />
+            )}
+            {category.categoryName}
+          </button>
+        </li>
+      ))
+    )}
+  </ul>
+
+
+</div>
 
               <div className="products-sections">
                 <h2>Products</h2>

@@ -119,6 +119,7 @@ const ForHerComponent = () => {
       }
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event('cartUpdated'));
       toast.success(`${product.productName} added to cart!`, { position: 'bottom-right' });
     } catch (error) {
       console.error('❌ Error adding to cart:', error);

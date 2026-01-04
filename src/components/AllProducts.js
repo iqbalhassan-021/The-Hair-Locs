@@ -4,8 +4,11 @@ import { Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const ITEMS_PER_LOAD = 8;
+
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
 
   useEffect(() => {
     const fetchAllProducts = async () => {
@@ -32,44 +35,45 @@ const AllProducts = () => {
           saleMap.set(doc.id, doc.data());
         });
 
-        // Map for category-specific sales (normalize keys)
+        // Map for category-specific sales
         const categorySalesMap = new Map();
         storeSaleSnap.docs.forEach(doc => {
           const data = doc.data();
           if (data.categoryId && data.salePercentage) {
-            categorySalesMap.set(data.categoryId.toLowerCase().trim(), data.salePercentage);
+            categorySalesMap.set(
+              data.categoryId.toLowerCase().trim(),
+              data.salePercentage
+            );
           }
         });
 
         const mergedList = productList.map(product => {
           const individualSale = saleMap.get(product.id);
 
-          // 1. Individual sale takes priority
           if (individualSale?.salePrice) {
-            return {
-              ...product,
-              salePrice: individualSale.salePrice
-            };
+            return { ...product, salePrice: individualSale.salePrice };
           }
 
-          // 2. Category-level sale
           const categoryKey = product.productType?.toLowerCase().trim();
           const categorySalePercentage = categorySalesMap.get(categoryKey);
+
           if (categorySalePercentage && product.productPrice) {
             const discountedPrice =
-              product.productPrice - (product.productPrice * (categorySalePercentage / 100));
+              product.productPrice -
+              (product.productPrice * categorySalePercentage) / 100;
+
             return {
               ...product,
-              salePrice: parseFloat(discountedPrice.toFixed(2))
+              salePrice: parseFloat(discountedPrice.toFixed(2)),
             };
           }
 
-          // 3. No discount
           return product;
         });
 
-        // Sort by productCode
-        mergedList.sort((a, b) => b.productCode?.localeCompare(a.productCode));
+        mergedList.sort((a, b) =>
+          b.productCode?.localeCompare(a.productCode)
+        );
 
         setProducts(mergedList);
       } catch (error) {
@@ -80,40 +84,45 @@ const AllProducts = () => {
     fetchAllProducts();
   }, []);
 
+  const loadMoreProducts = () => {
+    setVisibleCount(prev =>
+      Math.min(prev + ITEMS_PER_LOAD, products.length)
+    );
+  };
+
   const addToCart = (product) => {
     try {
       const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
       const actualPrice = product.salePrice || product.productPrice;
 
-      let updatedCart;
-
       const existingProduct = existingCart.find(item => item.id === product.id);
 
-      if (existingProduct) {
-        updatedCart = existingCart.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        updatedCart = [
-          ...existingCart,
-          {
-            id: product.id,
-            productName: product.productName,
-            productPrice: actualPrice,
-            productImage: product.productImage,
-            productSize: product.productSize,
-            productColor: product.productColor,
-            productCode: product.productCode,
-            productType: product.productType,
-            quantity: 1,
-          },
-        ];
-      }
+      const updatedCart = existingProduct
+        ? existingCart.map(item =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        : [
+            ...existingCart,
+            {
+              id: product.id,
+              productName: product.productName,
+              productPrice: actualPrice,
+              productImage: product.productImage,
+              productSize: product.productSize,
+              productColor: product.productColor,
+              productCode: product.productCode,
+              productType: product.productType,
+              quantity: 1,
+            },
+          ];
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
-      toast.success(`${product.productName} added to cart!`, { position: 'bottom-right' });
+      
+      toast.success(`${product.productName} added to cart!`, {
+        position: 'bottom-right',
+      });
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
       toast.error('Failed to add to cart.', { position: 'bottom-right' });
@@ -133,12 +142,18 @@ const AllProducts = () => {
               {products.length === 0 ? (
                 <p>No products found.</p>
               ) : (
-                products.map(product => (
-                  <Link to={`/product/${product.id}`} className="no-decoration" key={product.id}>
+                products.slice(0, visibleCount).map(product => (
+                  <Link
+                    to={`/product/${product.id}`}
+                    className="no-decoration"
+                    key={product.id}
+                  >
                     <div className="product-card">
                       <div
                         className="product-img-container"
-                        style={{ backgroundImage: `url(${product.productImage})` }}
+                        style={{
+                          backgroundImage: `url(${product.productImage})`,
+                        }}
                       >
                         <div className="product-buttons">
                           <button
@@ -152,18 +167,29 @@ const AllProducts = () => {
                           </button>
                         </div>
                       </div>
+
                       <div className="product-text-holder">
                         <div className="product-name">
-                          <p className="product-name-text">{product.productName}</p>
+                          <p className="product-name-text">
+                            {product.productName}
+                          </p>
                         </div>
+
                         <div className="product-price">
-                          {product.salePrice && product.salePrice !== product.productPrice ? (
+                          {product.salePrice &&
+                          product.salePrice !== product.productPrice ? (
                             <>
-                              <p className="product-price-text text-strike">Rs.{product.productPrice}</p>
-                              <p className="product-sale-price-text">Rs.{product.salePrice}</p>
+                              <p className="product-price-text text-strike">
+                                Rs.{product.productPrice}
+                              </p>
+                              <p className="product-sale-price-text">
+                                Rs.{product.salePrice}
+                              </p>
                             </>
                           ) : (
-                            <p className="product-price-text">Rs.{product.productPrice}</p>
+                            <p className="product-price-text">
+                              Rs.{product.productPrice}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -173,7 +199,20 @@ const AllProducts = () => {
               )}
             </div>
 
-            <p className="no-more-products">NO MORE PRODUCTS</p>
+            {visibleCount < products.length && (
+              <div style={{ textAlign: 'center', marginTop: '30px' , display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <button
+                  onClick={loadMoreProducts}
+                  className="primary-button"
+                >
+                  LOAD MORE
+                </button>
+              </div>
+            )}
+
+            {visibleCount >= products.length && (
+              <p className="no-more-products">NO MORE PRODUCTS</p>
+            )}
           </div>
         </div>
       </div>
