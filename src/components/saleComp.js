@@ -72,7 +72,7 @@ const OnSalePage = () => {
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       window.dispatchEvent(new Event('cartUpdated'));
-      toast.success(`${product.productName} added to cart!`, { position: 'bottom-right' });
+          window.dispatchEvent(new Event('toggle-cart'));
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
       toast.error('Failed to add to cart.', { position: 'bottom-right' });

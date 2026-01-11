@@ -119,10 +119,11 @@ const AllProducts = () => {
           ];
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
-      
-      toast.success(`${product.productName} added to cart!`, {
-        position: 'bottom-right',
-      });
+
+    window.dispatchEvent(new Event('toggle-cart'));
+      // toast.success(`${product.productName} added to cart!`, {
+      //   position: 'bottom-right',
+      // });
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
       toast.error('Failed to add to cart.', { position: 'bottom-right' });

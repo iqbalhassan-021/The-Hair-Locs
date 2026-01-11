@@ -123,7 +123,15 @@ useEffect(() => {
   };
 
 
-
+// Add this inside the Navbar component
+useEffect(() => {
+  const handleToggle = () => setIsCartOpen(prev => !prev);
+  
+  // Listen for the custom event
+  window.addEventListener('toggle-cart', handleToggle);
+  
+  return () => window.removeEventListener('toggle-cart', handleToggle);
+}, []);
 
 const updateQuantity = (id, delta) => {
   setCartItems(prevItems => {
