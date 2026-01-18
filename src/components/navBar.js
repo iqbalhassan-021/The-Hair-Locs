@@ -75,37 +75,37 @@ const Navbar = () => {
     mobilenav.style.display = mobilenav.style.display === 'flex' ? 'none' : 'flex';
   }
 
-useEffect(() => {
-  const loadCart = () => {
+  useEffect(() => {
+    const loadCart = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        setCartItems(cart);
+      } catch {
+        setCartItems([]);
+      }
+    };
+
+    loadCart();
+
+    // check cart every 500ms
+    const interval = setInterval(() => {
+      const stored = localStorage.getItem('cart');
+      if (stored) {
+        setCartVersion(v => v + 1);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     try {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       setCartItems(cart);
     } catch {
       setCartItems([]);
     }
-  };
-
-  loadCart();
-
-  // check cart every 500ms
-  const interval = setInterval(() => {
-    const stored = localStorage.getItem('cart');
-    if (stored) {
-      setCartVersion(v => v + 1);
-    }
-  }, 500);
-
-  return () => clearInterval(interval);
-}, []);
-
-useEffect(() => {
-  try {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    setCartItems(cart);
-  } catch {
-    setCartItems([]);
-  }
-}, [cartVersion]);
+  }, [cartVersion]);
 
 
   const closeMobileNav = () => {
@@ -123,30 +123,30 @@ useEffect(() => {
   };
 
 
-// Add this inside the Navbar component
-useEffect(() => {
-  const handleToggle = () => setIsCartOpen(prev => !prev);
-  
-  // Listen for the custom event
-  window.addEventListener('toggle-cart', handleToggle);
-  
-  return () => window.removeEventListener('toggle-cart', handleToggle);
-}, []);
+  // Add this inside the Navbar component
+  useEffect(() => {
+    const handleToggle = () => setIsCartOpen(prev => !prev);
 
-const updateQuantity = (id, delta) => {
-  setCartItems(prevItems => {
-    const updated = prevItems.map(item =>
-      item.id === id
-        ? { ...item, quantity: Math.max(item.quantity + delta, 1) }
-        : item
-    );
+    // Listen for the custom event
+    window.addEventListener('toggle-cart', handleToggle);
 
-    // ✅ sync with localStorage so polling doesn't overwrite
-    localStorage.setItem('cart', JSON.stringify(updated));
+    return () => window.removeEventListener('toggle-cart', handleToggle);
+  }, []);
 
-    return updated;
-  });
-};
+  const updateQuantity = (id, delta) => {
+    setCartItems(prevItems => {
+      const updated = prevItems.map(item =>
+        item.id === id
+          ? { ...item, quantity: Math.max(item.quantity + delta, 1) }
+          : item
+      );
+
+      // ✅ sync with localStorage so polling doesn't overwrite
+      localStorage.setItem('cart', JSON.stringify(updated));
+
+      return updated;
+    });
+  };
 
   const removeItem = (id) => {
     const updatedCart = cartItems.filter((item) => item.id !== id);
@@ -159,7 +159,7 @@ const updateQuantity = (id, delta) => {
     0
   );
   const total = subtotal;
-  
+
   return (
     <>
       {/* Notification */}
@@ -168,8 +168,8 @@ const updateQuantity = (id, delta) => {
       </div>
 
       {/* Navbar */}
-      <div className="wrapper">
-        <div className="navbar sticky">
+      <div className="wrapper sticky">
+        <div className="navbar ">
           <div className="cover">
             <div className="header">
               <div className="nav-container hamburger">
@@ -197,12 +197,12 @@ const updateQuantity = (id, delta) => {
                 </Link>
 
                 {/* Cart icon now toggles drawer */}
-                <button className="no-decoration navLink new-icon" onClick={toggleCart} style={{ background: 'none', border: 'none' }}>
+                <button className="no-decoration navLink" onClick={toggleCart} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
                   <i className="fa-solid fa-bag-shopping"></i>
                   {cartItems.length > 0 && <span className="cart-count">{cartItems.length}</span>}
                 </button>
 
-                <Link to="/Login" className="no-decoration navLink">
+                <Link to="/Login" className="no-decoration navLink new-icon">
                   <i className="fa-regular fa-user"></i>
                 </Link>
               </div>
@@ -281,37 +281,25 @@ const updateQuantity = (id, delta) => {
                 )}
               </div>
 
-              {/* Contact Dropdown */}
-              <div className="dropdown-section">
-                <p onClick={() => setShowContact(!showContact)} className="dropdown-title clickable">
+              
+              <div className="social-icons new-social-icons">
+                <p>Follow Us:</p>
+                <div className="social-icon-list">
+    <a href={'https://www.facebook.com/profile.php?id=61578300291320'} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-facebook-f"></i></div></a>
+                <a href={`https://instagram.com/${instaID || ''}`} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-instagram"></i></div></a>
+                <a
+                  href={`https://wa.me/${phone || ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="no-decoration"
+                >
+                  <div className="social-icon">
+                    <i className="fa-brands fa-whatsapp"></i>
+                  </div>
+                </a>
+                </div>
+            
 
-                  <span>Contact Us</span>
-                  <span> {showContact ? '▲' : '▼'}</span>
-
-                </p>
-                {showContact && (
-                  <ul className="dropdown">
-                    {instaID && (
-                      <li>
-                        <a href={`https://instagram.com/${instaID}`} target="_blank" rel="noopener noreferrer" className="no-decoration navLink" onClick={closeMobileNav}>
-                          Instagram
-                        </a>
-                      </li>
-                    )}
-                    <li>
-                      <a href="https://www.facebook.com/profile.php?id=61578300291320" target="_blank" rel="noopener noreferrer" className="no-decoration navLink" onClick={closeMobileNav}>
-                        Facebook
-                      </a>
-                    </li>
-                    {phone && (
-                      <li>
-                        <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className="no-decoration navLink" onClick={closeMobileNav}>
-                          WhatsApp
-                        </a>
-                      </li>
-                    )}
-                  </ul>
-                )}
               </div>
             </div>
           </div>

@@ -20,6 +20,7 @@ import CheckoutPage  from './pages/CheckoutPage';
 import Sale from './pages/onSale';
 import CategoryProductsPage  from './pages/CategoryProductsPage';
 import GiftPage from './pages/GiftPage';
+import OrderConfirmation from './pages/OrderConfirmation';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -50,7 +51,7 @@ function App() {
     <Route path="/Sale" element={<Sale />} />
     <Route path="/Category/:categoryName" element={<CategoryProductsPage />} />
     <Route path="/GiftPage" element={<GiftPage />} />
-
+    <Route path="/OrderConfirmation" element={<OrderConfirmation />} />
     </Routes>
 
 

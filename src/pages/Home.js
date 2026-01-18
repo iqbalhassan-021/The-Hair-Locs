@@ -22,9 +22,9 @@ function Home(){
     return (
         <>
       
-        <div className='sticky'>
+  
             <Navbar/>
-        </div>
+       
      
             <HeroSlider/>
             <NewAlerts />

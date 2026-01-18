@@ -27,9 +27,9 @@ const handleCartClick = (e) => {
         <span>Sale</span>
       </Link>
 
-      <Link onClick={handleCartClick} className={`bottom-link ${isActive('/Cart')}`}>
-        <i className="fas fa-shopping-cart"></i>
-        <span>Cart</span>
+      <Link  to="/ForHer" className={`bottom-link ${isActive('/ForHer')}`}>
+        <i className="fas fa-gift"></i>
+        <span>For Her</span>
       </Link>
     </div>
   );

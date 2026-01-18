@@ -8,6 +8,8 @@ const AdminPage = () => {
 
   // State for products, orders, categories, subscribers, product types, hero slider, sale, and banner
   const [products, setProducts] = useState([]);
+  const [activeTab, setActiveTab] = useState('orders'); // default active tab
+
   const [orders, setOrders] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
@@ -29,6 +31,57 @@ const AdminPage = () => {
   const [floatingMessage, setFloatingMessage] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
     const [sales, setSales] = useState([]);
+    const [showShipmentPopup, setShowShipmentPopup] = useState(false);
+const [selectedOrder, setSelectedOrder] = useState(null);
+const [shipmentPartner, setShipmentPartner] = useState('');
+const [shipmentCode, setShipmentCode] = useState('');
+
+// Delete order
+const handleDeleteOrder = async (orderId) => {
+  if (!window.confirm('Are you sure you want to delete this order?')) return;
+  try {
+    await deleteDoc(doc(db, 'orders', orderId));
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Open shipment popup
+const handleCompleteOrder = (order) => {
+  setSelectedOrder(order);
+  setShipmentPartner('');
+  setShipmentCode('');
+  setShowShipmentPopup(true);
+};
+
+// Submit shipment details
+const submitShipmentDetails = async () => {
+  if (!shipmentPartner || !shipmentCode) {
+    alert('Please fill in all fields');
+    return;
+  }
+  try {
+    await updateDoc(doc(db, 'orders', selectedOrder.id), {
+      status: 'shipped',
+      shipment: {
+        partner: shipmentPartner,
+        trackingCode: shipmentCode
+      }
+    });
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === selectedOrder.id
+          ? { ...o, status: 'shipped', shipment: { partner: shipmentPartner, trackingCode: shipmentCode } }
+          : o
+      )
+    );
+    setShowShipmentPopup(false);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
     const fetchSales = async () => {
       try {
@@ -529,29 +582,35 @@ const handleSaleSubmit = async (e) => {
 
   // Tab visibility functions
   const showTab = (tabId) => {
-    const tabs = [
-      'hometab', 
-      'storeSaleTab',
-      'orders', 
-      'uploadtab', 
-      'editstore', 
-      'upoadBlog', 
-      'subscribers', 
-      'categories', 
-      'saleTab', 
-      'forHerTab', 
-      'heroSliderTab', 
-      'saleSectionTab', 
-      'bannerSectionTab',
-      'notification',
-      'floatingMessage'
-    ];
-    tabs.forEach(id => {
-      document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
-    });
-    const togglebar = document.getElementById('togglebar');
-    togglebar.style.display = window.innerWidth <= 880 ? 'none' : 'flex';
-  };
+  setActiveTab(tabId); // mark the clicked tab as active
+
+  const tabs = [
+    'hometab', 
+    'storeSaleTab',
+    'orders', 
+    'uploadtab', 
+    'editstore', 
+    'upoadBlog', 
+    'subscribers', 
+    'categories', 
+    'saleTab', 
+    'forHerTab', 
+    'heroSliderTab', 
+    'saleSectionTab', 
+    'bannerSectionTab',
+    'notification',
+    'floatingMessage'
+  ];
+
+  tabs.forEach(id => {
+    const tab = document.getElementById(id);
+    if (tab) tab.style.display = id === tabId ? 'block' : 'none';
+  });
+
+  const togglebar = document.getElementById('togglebar');
+  if (togglebar) togglebar.style.display = window.innerWidth <= 880 ? 'none' : 'flex';
+};
+
 
   // Copy subscribers' emails
   const handleCopy = () => {
@@ -651,6 +710,18 @@ const handleFloatingMessage = async (e) => {
     alert('Failed to send floating message.');
   }
 }
+const thStyle = {
+  padding: '12px',
+  fontWeight: 600,
+  color: '#202223',
+  borderBottom: '1px solid #e1e3e5'
+};
+
+const tdStyle = {
+  padding: '12px',
+  verticalAlign: 'top',
+  color: '#202223'
+};
 
 
   return (
@@ -669,26 +740,86 @@ const handleFloatingMessage = async (e) => {
       <div className="actions-holder">
         <div className="cover">
           <div className="Toggleactions">
-            <div className="toggle-bar" id="togglebar">
-              <button className="primary-button" onClick={() => showTab('hometab')}>Home</button>
-              <button className="primary-button" onClick={() => showTab('storeSaleTab')}>Store Sale</button>
-              <button className="primary-button" onClick={() => showTab('orders')}>Orders</button>
-              <button className="primary-button" onClick={() => showTab('notification')}>Notification</button>
-              <button className="primary-button" onClick={() => showTab('floatingMessage')}>floating Message</button>
-              <button className="primary-button" onClick={() => showTab('uploadtab')}>Upload a Product</button>
-              <button className="primary-button" onClick={() => showTab('editstore')}>Edit Store</button>
-              <button className="primary-button" onClick={() => showTab('upoadBlog')}>Upload a Blog</button>
-              <button className="primary-button" onClick={() => showTab('categories')}>Categories</button>
-              <button className="primary-button" onClick={() => showTab('subscribers')}>Subscribers</button>
-              <button className="primary-button" onClick={() => showTab('saleTab')}>Products on Sale</button>
-              <button className="primary-button" onClick={() => showTab('forHerTab')}>Gifts for Her</button>
-              <button className="primary-button" onClick={() => showTab('heroSliderTab')}>Hero Slider</button>
-              <button className="primary-button" onClick={() => showTab('saleSectionTab')}>Sale Slider</button>
-              <button className="primary-button" onClick={() => showTab('bannerSectionTab')}>Banner Slider</button>
-              <Link to="/" className="no-decoration navLink">
-                <button className="primary-button">Go to Store</button>
-              </Link>
-            </div>
+         <div
+  className="toggle-bar"
+  id="togglebar"
+  style={{
+    display: 'flex',
+    flexDirection: 'column',
+    width: '220px',
+    height: '100vh',
+    padding: '20px 10px',
+    background: '#fff',
+    borderRight: '1px solid #e1e3e5',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
+    gap: '6px'
+  }}
+>
+  {[
+    { label: 'Home', tab: 'hometab' },
+    { label: 'Store Sale', tab: 'storeSaleTab' },
+    { label: 'Orders', tab: 'orders' },
+    { label: 'Notification', tab: 'notification' },
+    { label: 'Floating Message', tab: 'floatingMessage' },
+    { label: 'Upload a Product', tab: 'uploadtab' },
+    { label: 'Edit Store', tab: 'editstore' },
+    { label: 'Upload a Blog', tab: 'upoadBlog' },
+    { label: 'Categories', tab: 'categories' },
+    { label: 'Subscribers', tab: 'subscribers' },
+    { label: 'Products on Sale', tab: 'saleTab' },
+    { label: 'Gifts for Her', tab: 'forHerTab' },
+    { label: 'Hero Slider', tab: 'heroSliderTab' },
+    { label: 'Sale Slider', tab: 'saleSectionTab' },
+    { label: 'Banner Slider', tab: 'bannerSectionTab' },
+  ].map((item) => (
+    <button
+      key={item.tab}
+      onClick={() => showTab(item.tab)}
+      style={{
+        padding: '10px 14px',
+        textAlign: 'left',
+        border: 'none',
+        borderRadius: '6px',
+        background: activeTab === item.tab ? '#f1f2f3' : 'transparent',
+        color: '#202223',
+        fontWeight: activeTab === item.tab ? 600 : 500,
+        cursor: 'pointer',
+        transition: 'background 0.2s',
+        width: '100%',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = '#f9f9f9')}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.background = activeTab === item.tab ? '#f1f2f3' : 'transparent')
+      }
+    >
+      {item.label}
+    </button>
+  ))}
+
+  <Link
+    to="/"
+    className="no-decoration navLink"
+    style={{ marginTop: '10px', textDecoration: 'none' }}
+  >
+    <button
+      style={{
+        padding: '10px 14px',
+        textAlign: 'left',
+        border: 'none',
+        borderRadius: '6px',
+        background: '#1a73e8',
+        color: '#fff',
+        fontWeight: 600,
+        cursor: 'pointer',
+        width: '100%',
+      }}
+    >
+      Go to Store
+    </button>
+  </Link>
+</div>
+
             <div className="tabs">
 
 
@@ -748,31 +879,260 @@ const handleFloatingMessage = async (e) => {
                     ))}
                   </div>
                 )}
-              </div>
+              </div>{/* Orders Tab */}
+<div
+  className="ordersTab"
+  id="orders"
+  style={{
+    display: 'none',
+    padding: '20px',
+    background: '#f6f6f7',
+    borderRadius: '10px'
+  }}
+>
+  <h3 style={{ marginBottom: '16px', fontWeight: 600 }}>Orders</h3>
 
-              {/* Orders Tab */}
-              <div className="ordersTab" id="orders" style={{ display: 'none' }}>
-                <h3>Orders</h3>
-                {orders.length === 0 ? (
-                  <p>No orders</p>
-                ) : (
-                  orders.map((order, index) => (
-                    <div className="new-order" key={index}>
-                      <img src={order.productImg} alt={order.productName} style={{ maxWidth: '200px' }} />
-                      <p><strong>Name:</strong> {order.buyerName}</p>
-                      <p><strong>Email:</strong> {order.buyerEmail}</p>
-                      <p><strong>Address:</strong> {order.buyerAddress}</p>
-                      <p><strong>Product Name:</strong> {order.productName}</p>
-                      <p><strong>Product Code:</strong> {order.productCode}</p>
-                      <p><strong>Product Type:</strong> {order.productType}</p>
-                      <p><strong>Quantity:</strong> {order.productQuantity}</p>
-                      <p><strong>Size:</strong> {order.size}</p>
-                      <p><strong>Color:</strong> {order.color}</p>
-                      <p><strong>Total Bill:</strong> {order.totalAmount}</p>
+  {orders.length === 0 ? (
+    <p style={{ color: '#6d7175' }}>No orders</p>
+  ) : (
+    <div
+      style={{
+        maxHeight: '600px',
+        overflowY: 'auto',
+        overflowX: 'auto',
+        border: '1px solid #e1e3e5',
+        borderRadius: '8px',
+        background: '#fff',
+        padding: '10px'
+      }}
+    >
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          fontSize: '14px'
+        }}
+      >
+        <thead>
+          <tr style={{ background: '#f1f2f3', textAlign: 'left' }}>
+            <th style={thStyle}>Order #</th>
+            <th style={thStyle}>Customer</th>
+            <th style={thStyle}>Address</th>
+            <th style={thStyle}>Items</th>
+            <th style={thStyle}>Total</th>
+            <th style={thStyle}>Payment</th>
+            <th style={thStyle}>Status</th>
+            <th style={thStyle}>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {orders.map((order, index) => (
+            <tr
+              key={order.id || index}
+              style={{ borderBottom: '1px solid #e1e3e5', verticalAlign: 'top' }}
+            >
+              <td style={tdStyle}>#{index + 1}</td>
+
+              <td style={tdStyle}>
+                <strong>
+                  {order.customer?.firstName} {order.customer?.lastName}
+                </strong>
+                <br />
+                <span style={{ color: '#6d7175' }}>{order.customer?.email}</span>
+                <br />
+                <span style={{ color: '#6d7175' }}>{order.customer?.phone}</span>
+              </td>
+
+              <td style={tdStyle}>
+                {order.customer?.street} {order.customer?.address2 && `, ${order.customer.address2}`}
+                <br />
+                {order.customer?.city}, {order.customer?.region}, {order.customer?.country}
+              </td>
+
+              <td style={tdStyle}>
+                {order.cartItems?.map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '6px'
+                    }}
+                  >
+                    <img
+                      src={item.productImage}
+                      alt={item.productName}
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '6px',
+                        objectFit: 'cover',
+                        border: '1px solid #ddd'
+                      }}
+                    />
+                    <div>
+                      <div>{item.productName}</div>
+                      <div style={{ color: '#6d7175', fontSize: '12px' }}>
+                        Qty: {item.quantity}
+                      </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                ))}
+              </td>
+
+              <td style={tdStyle}>
+                <strong>Rs.{order.pricing?.total}</strong>
+                <br />
+                <span style={{ color: '#6d7175', fontSize: '12px' }}>
+                  Shipping: Rs.{order.pricing?.shipping}
+                </span>
+              </td>
+
+              <td style={tdStyle}>
+                {order.payment?.method === 'cod' ? 'Cash on Delivery' : 'Bank Deposit'}
+              </td>
+
+              <td style={tdStyle}>
+                <span
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    background: order.status === 'pending' ? '#fff4e5' : '#e3f1df',
+                    color: order.status === 'pending' ? '#916a00' : '#1a7f37'
+                  }}
+                >
+                  {order.status}
+                </span>
+              </td>
+
+              <td style={tdStyle}>
+                <button
+                  onClick={() => handleDeleteOrder(order.id)}
+                  style={{
+                    padding: '4px 8px',
+                    marginBottom: '4px',
+                    background: '#ff4d4f',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  Delete
+                </button>
+                <br />
+                <button
+                  onClick={() => handleCompleteOrder(order)}
+                  style={{
+                    padding: '4px 8px',
+                    background: '#1a73e8',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  Complete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  {/* Shipment Popup */}
+  {showShipmentPopup && selectedOrder && (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999
+      }}
+    >
+      <div
+        style={{
+          background: '#fff',
+          padding: '20px',
+          borderRadius: '10px',
+          width: '400px'
+        }}
+      >
+        <h3 style={{ marginBottom: '10px' }}>Add Shipment Details</h3>
+
+        <input
+          type="text"
+          placeholder="Shipping Partner"
+          value={shipmentPartner}
+          onChange={(e) => setShipmentPartner(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px',
+            marginBottom: '10px',
+            borderRadius: '6px',
+            border: '1px solid #ddd'
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Tracking Code"
+          value={shipmentCode}
+          onChange={(e) => setShipmentCode(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px',
+            marginBottom: '10px',
+            borderRadius: '6px',
+            border: '1px solid #ddd'
+          }}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <button
+            onClick={() => setShowShipmentPopup(false)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: '#ddd',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submitShipmentDetails}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: '#1a73e8',
+              color: '#fff',
+              cursor: 'pointer'
+            }}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
 
               {/* Upload Product Tab */}
               <div className="uploadTab" id="uploadtab" style={{ display: 'none' }}>

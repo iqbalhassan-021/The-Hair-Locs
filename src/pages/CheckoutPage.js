@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navBar';
 import Footer from '../components/footer';
 import { useNavigate } from 'react-router-dom';
-import { getFirestore, collection, getDocs ,query, where } from 'firebase/firestore';
+import { getFirestore, collection, getDocs ,query, where, addDoc, serverTimestamp  } from 'firebase/firestore';
 import BottomBar from '../components/BottomBar';
 import '../components/checkout.css';
+import { firestore } from '../firebase';
 
 const provinces = [
   'Punjab',
@@ -64,7 +65,7 @@ const CheckoutPage = () => {
 
   const navigate = useNavigate();
   const [giftBoxes, setGiftBoxes] = useState([]);
-  const db = getFirestore();
+  
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
@@ -75,7 +76,7 @@ const CheckoutPage = () => {
   useEffect(() => {
     const fetchShippingRate = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'storeDetails'));
+        const querySnapshot = await getDocs(collection(firestore, 'storeDetails'));
         if (!querySnapshot.empty) {
           const doc = querySnapshot.docs[0];
           const data = doc.data();
@@ -99,7 +100,7 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     const fetchGiftBoxes = async () => {
-      const q = query(collection(db, 'products'), where('productType', '==', 'Giftbox'));
+      const q = query(collection(firestore, 'products'), where('productType', '==', 'Giftbox'));
       const snapshot = await getDocs(q);
       const boxes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setGiftBoxes(boxes);
@@ -117,16 +118,62 @@ const CheckoutPage = () => {
     localStorage.removeItem('cart');
     setCartItems([]);
   }
+  const saveOrderToFirestore = async (e) => {
+  e.preventDefault();
+
+  if (cartItems.length === 0) return;
+
+  try {
+    await addDoc(collection(firestore, 'orders'), {
+      customer: { ...formData },
+
+      cartItems: cartItems.map(item => ({
+        productId: item.id,
+        productName: item.productName,
+        productImage: item.productImage,
+        productPrice: Number(item.productPrice),
+        quantity: item.quantity
+      })),
+
+      pricing: {
+        subtotal: itemsTotal,
+        shipping: calculatedShipping,
+        total: grandTotal
+      },
+
+      payment: {
+        method: formData.paymentMethod,
+        shippingMethod: formData.shippingMethod
+      },
+
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+
+    clearCart();
+    navigate('/OrderConfirmation', { state: { orderData: {
+  customer: formData,
+  cartItems,
+  pricing: { subtotal: itemsTotal, shipping: calculatedShipping, total: grandTotal },
+  payment: { method: formData.paymentMethod, shippingMethod: formData.shippingMethod }
+}}});
+
+
+  } catch (error) {
+    console.error('❌ Order save failed:', error);
+  }
+};
+
+
   return (
     <>
-      <div className="sticky">
+    
         <Navbar />
-      </div>
+     
 
       <form
         className="checkout-wrapper"
-        action="https://api.web3forms.com/submit"
-        method="POST"
+          onSubmit={saveOrderToFirestore}
       >
         <input type="hidden" name="access_key" value="2f21b333-cfce-49ef-bd80-2c39a139de22" />
         <input type="hidden" name="shippingRate" value={calculatedShipping} />
@@ -143,7 +190,7 @@ const CheckoutPage = () => {
 
         <div className="checkout-left">
           <section className="checkout-section">
-            <h3>Contact</h3>
+            <h3>Email</h3>
             <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleInputChange} required />
           </section>
 
@@ -157,7 +204,7 @@ const CheckoutPage = () => {
 
             <input type="text" name="street" placeholder="Address" value={formData.street} onChange={handleInputChange} required />
 
-            <input type="text" name="address2" placeholder="Apartment, suite, etc. (optional)" value={formData.address2} onChange={handleInputChange} />
+            <input type="text" name="address2" placeholder="Apartment, suite, etc" required value={formData.address2} onChange={handleInputChange} />
 
             <select name="region" value={formData.region} onChange={handleInputChange} required>
               <option value="">Province</option>
@@ -175,9 +222,9 @@ const CheckoutPage = () => {
               <input type="text" name="postalCode" placeholder="Postal Code" value={formData.postalCode} onChange={handleInputChange} required />
             </div>
 
-            <input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleInputChange} />
+            <input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleInputChange} required />
 
-            <textarea name="orderNotes" placeholder="Order notes (optional)" value={formData.orderNotes} onChange={handleInputChange} />
+            <textarea name="orderNotes" placeholder="Order notes" value={formData.orderNotes} onChange={handleInputChange} required/>
           </section>
 
 <section className="checkout-section accordion">
@@ -224,7 +271,7 @@ const CheckoutPage = () => {
   </div>
 </section>
 
-          <button type="submit" className="complete-order" onClick={clearCart}>Complete Order</button>
+          <button type="submit" className="complete-order" >Complete Order</button>
         </div>
 
         <div className="checkout-right">
