@@ -110,7 +110,7 @@ const CheckoutPage = () => {
 
   const isFormFilled = Object.values(formData).every(v => String(v).trim() !== '');
   const itemsTotal = cartItems.reduce((s, i) => s + Number(i.productPrice) * i.quantity, 0);
-  const calculatedShipping = isFormFilled ? shippingRate : 0;
+  const calculatedShipping =  shippingRate;
   const grandTotal = itemsTotal + calculatedShipping;
 
 
@@ -189,6 +189,14 @@ const CheckoutPage = () => {
         ))}
 
         <div className="checkout-left">
+          {/* add a order summary here */}
+           <section className="order-summary-top">
+            <h2>Order Summary</h2>
+            <h2>
+              PKR{itemsTotal}
+            </h2>
+          </section>
+          <br></br>
           <section className="checkout-section">
             <h3>Email</h3>
             <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleInputChange} required />
@@ -204,7 +212,7 @@ const CheckoutPage = () => {
 
             <input type="text" name="street" placeholder="Address" value={formData.street} onChange={handleInputChange} required />
 
-            <input type="text" name="address2" placeholder="Apartment, suite, etc" required value={formData.address2} onChange={handleInputChange} />
+            <input type="text" name="address2" placeholder="Apartment, suite, etc [optional]"   value={formData.address2} onChange={handleInputChange} />
 
             <select name="region" value={formData.region} onChange={handleInputChange} required>
               <option value="">Province</option>
@@ -224,7 +232,7 @@ const CheckoutPage = () => {
 
             <input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleInputChange} required />
 
-            <textarea name="orderNotes" placeholder="Order notes" value={formData.orderNotes} onChange={handleInputChange} required/>
+            <textarea name="orderNotes" placeholder="Order notes [optional]" value={formData.orderNotes} onChange={handleInputChange} />
           </section>
 
 <section className="checkout-section accordion">
@@ -271,7 +279,7 @@ const CheckoutPage = () => {
   </div>
 </section>
 
-          <button type="submit" className="complete-order" >Complete Order</button>
+        
         </div>
 
         <div className="checkout-right">
@@ -293,6 +301,8 @@ const CheckoutPage = () => {
             <p>Shipping: Rs.{calculatedShipping}</p>
             <h4>Total: Rs.{grandTotal}</h4>
           </div>
+          <br></br>
+            <button type="submit" className="complete-order" >Complete Order</button>
         </div>
       </form>
 

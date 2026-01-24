@@ -210,14 +210,44 @@ useEffect(() => {
           </button>
         </li>
       ))
-    )}
+    )} 
   </ul>
 
 
 </div>
 
               <div className="products-sections">
-                <h2>Products</h2>
+                <div className='new-filter' style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexDirection:'row',
+                  }}>
+                  <h2>Products</h2>
+           <div className="filter-container">
+  <label htmlFor="price-filter">
+    Filter Products by:
+  </label>
+
+  <select
+    id="price-filter"
+    // value={priceFilter}
+    // onChange={(e) => setPriceFilter(e.target.value)}
+    style={{
+      marginLeft: '10px',
+      padding: '6px',
+      borderRadius: '6px',
+      cursor: 'pointer'
+    }}
+  >
+    <option value="">Default</option>
+    <option value="low-high">Price: Low → High</option>
+    <option value="high-low">Price: High → Low</option>
+  </select>
+</div>
+
+                </div>
+               
                 <div className="showcase grid-3x">
                   {filteredProducts.length === 0 ? (
                     <p>No products available</p>

@@ -2454,6 +2454,7 @@ video {
   margin: 0 0 0.5rem;
   font-size: 1.2rem;
   color: #333;
+  text-transform: capitalize;
 }
 
 .item-details p {
@@ -3543,4 +3544,27 @@ z-index: 9999;
     padding-left: 10px;
     padding-right: 20px;
   }
+}
+.order-summary-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  border-bottom: 1px solid #666;
+  
+}
+.order-summary-top h2{
+  color: #222;
+  font-weight: 400 !important;
+}
+@media (max-width: 768px) {
+  .grid { 
+    display: block !important; 
+  }
+}
+
+@media (max-width: 768px) {
+.new-filter label{
+  display: none;
+}
 }

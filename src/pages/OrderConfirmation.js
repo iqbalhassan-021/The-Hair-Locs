@@ -105,7 +105,7 @@ const OrderConfirmation = () => {
             ))}
           </div>
 
-          <Link to="/products">
+          <Link to="/">
             <button style={btnStyle}>Continue Shopping</button>
           </Link>
         </div>
@@ -119,7 +119,7 @@ const OrderConfirmation = () => {
 const btnStyle = {
   marginTop: "20px",
   padding: "10px 20px",
-  background: "#1a73e8",
+  background: "black",
   color: "#fff",
   border: "none",
   borderRadius: "6px",
