@@ -58,6 +58,53 @@ const OwnerEmailTemplate = ({ orderData }) => {
           </tr>
 
           <tr><td style={styles.divider}></td></tr>
+ {/* Order Items */}
+          <tr>
+            <td style={styles.section}>
+              <h3 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: '600' }}>Order items</h3>
+              <table width="100%" cellPadding="0" cellSpacing="0">
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Item</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>Qty</th>
+                    <th style={{ ...styles.th, textAlign: 'right' }}>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {cartItems.map((item, index) => (
+  <tr key={index} style={{ borderTop: '1px solid #e5e7eb' }}>
+    {/* Product Image */}
+    <td style={{ padding: '12px', width: '64px' }}>
+      <img 
+        src={item.productImage} 
+        alt={item.productName} 
+        width="64" 
+        height="64" 
+        style={{ objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+      />
+    </td>
+
+    {/* Product Name */}
+    <td style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>
+      {item.productName}
+    </td>
+
+    {/* Quantity */}
+    <td align="center" style={{ padding: '12px', fontSize: '14px' }}>
+      {item.quantity}
+    </td>
+
+    {/* Price */}
+    <td align="right" style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>
+      Rs. {item.productPrice}
+    </td>
+  </tr>
+))}
+
+                </tbody>
+              </table>
+            </td>
+          </tr>
 
           {/* Shipping Address */}
           <tr>
@@ -74,32 +121,7 @@ const OwnerEmailTemplate = ({ orderData }) => {
 
           <tr><td style={styles.divider}></td></tr>
 
-          {/* Order Items */}
-          <tr>
-            <td style={styles.section}>
-              <h3 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: '600' }}>Order items</h3>
-              <table width="100%" cellPadding="0" cellSpacing="0">
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Item</th>
-                    <th style={{ ...styles.th, textAlign: 'center' }}>Qty</th>
-                    <th style={{ ...styles.th, textAlign: 'right' }}>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cartItems.map((item, index) => (
-                    <tr key={index}>
-                      <td style={{ padding: '12px 0', borderTop: '1px solid #e5e7eb', fontSize: '14px' }}>{item.productName}</td>
-                      <td align="center" style={{ padding: '12px 0', borderTop: '1px solid #e5e7eb', fontSize: '14px' }}>{item.quantity}</td>
-                      <td align="right" style={{ padding: '12px 0', borderTop: '1px solid #e5e7eb', fontSize: '14px' }}>Rs. {item.productPrice}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </td>
-          </tr>
-
-          <tr><td style={styles.divider}></td></tr>
+         
 
           {/* Totals */}
           <tr>
@@ -123,6 +145,7 @@ const OwnerEmailTemplate = ({ orderData }) => {
             </td>
           </tr>
 
+          <tr><td style={styles.divider}></td></tr>
           {/* Footer */}
           <tr>
             <td style={{ padding: '20px 32px', backgroundColor: '#f9fafb', fontSize: '12px', color: '#6b7280' }}>

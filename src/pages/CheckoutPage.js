@@ -6,6 +6,11 @@ import { getFirestore, collection, getDocs ,query, where, addDoc, serverTimestam
 import BottomBar from '../components/BottomBar';
 import '../components/checkout.css';
 import { firestore } from '../firebase';
+import { renderToStaticMarkup } from 'react-dom/server';
+import emailjs from '@emailjs/browser';
+
+import EmailTemplate from '../emailing/customerside'
+import OwnerEmailTemplate from '../emailing/ownerside'
 
 const provinces = [
   'Punjab',
@@ -118,15 +123,63 @@ const CheckoutPage = () => {
     localStorage.removeItem('cart');
     setCartItems([]);
   }
-  const saveOrderToFirestore = async (e) => {
+//   const saveOrderToFirestore = async (e) => {
+//   e.preventDefault();
+
+//   if (cartItems.length === 0) return;
+
+//   try {
+//     await addDoc(collection(firestore, 'orders'), {
+//       customer: { ...formData },
+
+//       cartItems: cartItems.map(item => ({
+//         productId: item.id,
+//         productName: item.productName,
+//         productImage: item.productImage,
+//         productPrice: Number(item.productPrice),
+//         quantity: item.quantity
+//       })),
+
+//       pricing: {
+//         subtotal: itemsTotal,
+//         shipping: calculatedShipping,
+//         total: grandTotal
+//       },
+
+//       payment: {
+//         method: formData.paymentMethod,
+//         shippingMethod: formData.shippingMethod
+//       },
+
+//       status: 'pending',
+//       createdAt: serverTimestamp()
+//     });
+
+//     clearCart();
+//     navigate('/OrderConfirmation', { state: { orderData: {
+//   customer: formData,
+//   cartItems,
+//   pricing: { subtotal: itemsTotal, shipping: calculatedShipping, total: grandTotal },
+//   payment: { method: formData.paymentMethod, shippingMethod: formData.shippingMethod }
+// }}});
+
+
+//   } catch (error) {
+//     console.error('❌ Order save failed:', error);
+//   }
+// };
+
+const saveOrderToFirestore = async (e) => {
   e.preventDefault();
-
   if (cartItems.length === 0) return;
-
+  const SERVICE_ID = 'service_pe465dj';
+  const PUBLIC_KEY = 'D-GMxVUU7C6937ZFN';
+  const CUSTOMER_TEMPLATE_ID = 'template_pc72olo';
+  const OWNER_TEMPLATE_ID = 'template_y9ma92f';
   try {
-    await addDoc(collection(firestore, 'orders'), {
+    await addDoc(collection(firestore, 'orders'), 
+    {
       customer: { ...formData },
-
       cartItems: cartItems.map(item => ({
         productId: item.id,
         productName: item.productName,
@@ -134,37 +187,61 @@ const CheckoutPage = () => {
         productPrice: Number(item.productPrice),
         quantity: item.quantity
       })),
-
       pricing: {
         subtotal: itemsTotal,
         shipping: calculatedShipping,
         total: grandTotal
       },
-
       payment: {
         method: formData.paymentMethod,
         shippingMethod: formData.shippingMethod
       },
-
       status: 'pending',
       createdAt: serverTimestamp()
     });
-
-    clearCart();
-    navigate('/OrderConfirmation', { state: { orderData: {
-  customer: formData,
-  cartItems,
-  pricing: { subtotal: itemsTotal, shipping: calculatedShipping, total: grandTotal },
-  payment: { method: formData.paymentMethod, shippingMethod: formData.shippingMethod }
-}}});
-
-
-  } catch (error) {
-    console.error('❌ Order save failed:', error);
-  }
-};
-
-
+    const emailOrderData = {
+      customer: formData,
+      cartItems: cartItems,
+      pricing: { 
+        subtotal: itemsTotal, 
+        shipping: calculatedShipping, 
+        total: grandTotal 
+      }};
+      const customerHTML = renderToStaticMarkup(<EmailTemplate orderData={emailOrderData} storeDetails={storeDetails} />);
+      const ownerHTML = renderToStaticMarkup(<OwnerEmailTemplate orderData={emailOrderData} />);
+      // const ownerEmail = storeDetails?.email;
+      await Promise.all([
+        emailjs.send(SERVICE_ID, CUSTOMER_TEMPLATE_ID, {
+          to_email: formData.email,
+          customer_name: formData.firstName,
+          message_html: customerHTML,
+        }, PUBLIC_KEY),
+        emailjs.send(SERVICE_ID, OWNER_TEMPLATE_ID, {
+          to_email: "i.hassan407408@gmail.com", // 👈 REQUIRED
+          // to_email: formData.owneremail, // ✅ FROM FIRESTORE
+          customer_name: `${formData.firstName} ${formData.lastName}`,
+          message_html: ownerHTML,
+        }, PUBLIC_KEY)]);
+        clearCart();
+        navigate('/OrderConfirmation', { 
+          state: { 
+            orderData: {
+            customer: formData,
+            cartItems,
+            pricing: { 
+              subtotal: itemsTotal, 
+              shipping: calculatedShipping, 
+              total: grandTotal 
+            },
+            payment: { 
+              method: formData.paymentMethod, 
+              shippingMethod: formData.shippingMethod 
+            }}}});
+          } catch (error) {
+            console.error(' Process failed:', error);
+            alert("Something went wrong while processing your order.");
+          }
+        };
   return (
     <>
     
@@ -178,7 +255,8 @@ const CheckoutPage = () => {
         <input type="hidden" name="access_key" value="2f21b333-cfce-49ef-bd80-2c39a139de22" />
         <input type="hidden" name="shippingRate" value={calculatedShipping} />
         <input type="hidden" name="totalAmount" value={grandTotal.toFixed(2)} />
-
+       
+        
         {cartItems.map((item, index) => (
           <div key={item.id}>
             <input type="hidden" name={`cart[${index}][productImage]`} value={item.productImage} />

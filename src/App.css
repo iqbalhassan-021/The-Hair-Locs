@@ -3568,3 +3568,6 @@ z-index: 9999;
   display: none;
 }
 }
+form input{
+  text-transform: lowercase !important;
+}

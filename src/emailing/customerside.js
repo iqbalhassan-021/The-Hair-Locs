@@ -21,7 +21,8 @@ const EmailTemplate = ({ orderData, storeDetails }) => {
           {/* Logo & Header */}
           <tr>
             <td style={{ textAlign: 'center', padding: '32px' }}>
-              <h2 style={{ margin: 0 }}>{storeDetails?.storeName || 'Our Store'}</h2>
+              
+              <img src={storeDetails?.storeLogo} alt="Store Logo" width="200" height="50" style={{ objectFit: 'contain' }} />
               <h1 style={{ fontSize: '24px', marginTop: '16px' }}>
                 Thanks for your order, {customer.firstName}!
               </h1>
@@ -32,27 +33,54 @@ const EmailTemplate = ({ orderData, storeDetails }) => {
           <tr><td style={styles.divider}></td></tr>
 
           {/* Items List */}
-          <tr>
-            <td style={styles.section}>
-              {cartItems.map((item, index) => (
-                <div key={index} style={styles.itemRow}>
-                  <table width="100%">
-                    <tbody>
-                      <tr>
-                        <td>
-                          <p style={{ margin: 0, fontWeight: '500' }}>{item.productName}</p>
-                          <p style={styles.textMuted}>Qty {item.quantity}</p>
-                        </td>
-                        <td align="right" style={{ fontWeight: '500' }}>
-                          Rs. {item.productPrice}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+{/* Items List */}
+<tr>
+  <td style={styles.section}>
+    <table width="100%" cellPadding="0" cellSpacing="0">
+      <tbody>
+        {cartItems.map((item, index) => (
+          <tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
+            {/* Product Image */}
+            <td width="80" style={{ padding: '12px 0' }}>
+              <img
+                src={item.productImage}
+                alt={item.productName}
+                width="64"
+                height="64"
+                style={{
+                  objectFit: 'cover',
+                  borderRadius: '6px',
+                  border: '1px solid #e5e7eb'
+                }}
+              />
+            </td>
+
+            {/* Product Info */}
+            <td style={{ padding: '12px 8px' }}>
+              <p style={{ margin: 0, fontWeight: '600' }}>
+                {item.productName}
+              </p>
+
+              <table width="100%" style={{ marginTop: '6px' }}>
+                <tbody>
+                  <tr>
+                    <td style={styles.textMuted}>
+                      Qty: {item.quantity}
+                    </td>
+                    <td align="right" style={{ fontWeight: '500' }}>
+                      Rs. {item.productPrice}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </td>
           </tr>
+        ))}
+      </tbody>
+    </table>
+  </td>
+</tr>
+
 
           <tr><td style={styles.divider}></td></tr>
 
@@ -96,7 +124,10 @@ const EmailTemplate = ({ orderData, storeDetails }) => {
           {/* Footer */}
           <tr>
             <td style={{ ...styles.section, backgroundColor: '#f9fafb', textAlign: 'center' }}>
-              <p style={styles.textMuted}>Questions? Contact us at support@yourstore.com</p>
+              <p style={styles.textMuted}>Questions? Contact us at 
+                 -  
+                {storeDetails.email}
+                </p>
               <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px' }}>
                 © {currentYear} {storeDetails?.storeName}
               </p>
