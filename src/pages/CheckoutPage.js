@@ -172,10 +172,10 @@ const CheckoutPage = () => {
 const saveOrderToFirestore = async (e) => {
   e.preventDefault();
   if (cartItems.length === 0) return;
-  const SERVICE_ID = 'service_pe465dj';
-  const PUBLIC_KEY = 'D-GMxVUU7C6937ZFN';
-  const CUSTOMER_TEMPLATE_ID = 'template_pc72olo';
-  const OWNER_TEMPLATE_ID = 'template_y9ma92f';
+  const SERVICE_ID = 'service_c5fku3d';
+  const PUBLIC_KEY = 'Gged1csCAQNLJIJ5E';
+  const CUSTOMER_TEMPLATE_ID = 'template_bblnpqa';
+  const OWNER_TEMPLATE_ID = 'template_khggilu';
   try {
     await addDoc(collection(firestore, 'orders'), 
     {
@@ -217,7 +217,7 @@ const saveOrderToFirestore = async (e) => {
           message_html: customerHTML,
         }, PUBLIC_KEY),
         emailjs.send(SERVICE_ID, OWNER_TEMPLATE_ID, {
-          to_email: "i.hassan407408@gmail.com", // 👈 REQUIRED
+          to_email: "imzalocc@gmail.com", // 👈 REQUIRED
           // to_email: formData.owneremail, // ✅ FROM FIRESTORE
           customer_name: `${formData.firstName} ${formData.lastName}`,
           message_html: ownerHTML,

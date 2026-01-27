@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, addDoc, getFirestore, getDocs, deleteDoc, doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { app } from '../firebase';
+import emailjs from '@emailjs/browser';
+import { renderToStaticMarkup } from 'react-dom/server';
+import shippingemail from '../emailing/shippingemail';
+import { firestore } from '../firebase';
+import ShippingEmail from '../emailing/shippingemail';
 
 const AdminPage = () => {
   const db = getFirestore(app);
@@ -35,6 +40,7 @@ const AdminPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [shipmentPartner, setShipmentPartner] = useState('');
   const [shipmentCode, setShipmentCode] = useState('');
+  const [storeDetails, setStoreDetails] = useState(null);
 
   // Delete order
   const handleDeleteOrder = async (orderId) => {
@@ -56,33 +62,109 @@ const AdminPage = () => {
   };
 
   // Submit shipment details
+  // const submitShipmentDetails = async () => {
+  //   if (!shipmentPartner || !shipmentCode) {
+  //     alert('Please fill in all fields');
+  //     return;
+  //   }
+  //   try {
+  //     await updateDoc(doc(db, 'orders', selectedOrder.id), {
+  //       status: 'shipped',
+  //       shipment: {
+  //         partner: shipmentPartner,
+  //         trackingCode: shipmentCode
+  //       }
+  //     });
+  //     setOrders((prev) =>
+  //       prev.map((o) =>
+  //         o.id === selectedOrder.id
+  //           ? { ...o, status: 'shipped', shipment: { partner: shipmentPartner, trackingCode: shipmentCode } }
+  //           : o
+  //       )
+  //     );
+  //     setShowShipmentPopup(false);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+  useEffect(() => {
+    const fetchShippingRate = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, 'storeDetails'));
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          const data = doc.data();
+          setStoreDetails(data);
+
+        }
+
+      } catch (error) {
+        console.error('❌ Error fetching shipping rate:', error);
+      }
+    };
+
+    fetchShippingRate();
+  }, []);
+
   const submitShipmentDetails = async () => {
+    const SERVICE_ID = 'service_c5fku3d';
+    const PUBLIC_KEY = 'Gged1csCAQNLJIJ5E';
+    const SHIPMENT_TEMPLATE_ID = 'template_bblnpqa'; 
     if (!shipmentPartner || !shipmentCode) {
       alert('Please fill in all fields');
       return;
     }
-    try {
+    if (!selectedOrder?.id || !selectedOrder?.customer?.email) {
+      alert('Order data missing');
+      return;
+    }try 
+    {
+      const shippingData = {
+        partner: shipmentPartner,
+        trackingNumber: shipmentCode
+      };
       await updateDoc(doc(db, 'orders', selectedOrder.id), {
         status: 'shipped',
-        shipment: {
-          partner: shipmentPartner,
-          trackingCode: shipmentCode
-        }
-      });
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === selectedOrder.id
-            ? { ...o, status: 'shipped', shipment: { partner: shipmentPartner, trackingCode: shipmentCode } }
-            : o
-        )
+        shipping: shippingData});
+        setOrders(prev =>
+          prev.map(order =>
+            order.id === selectedOrder.id?{
+              ...order,
+              status: 'shipped',
+              shipping: shippingData
+            }
+            : order
+          )
+        );
+        const emailOrderData = {
+          customer: selectedOrder.customer,
+          cartItems: selectedOrder.cartItems,
+          pricing: selectedOrder.pricing,
+          payment: selectedOrder.payment,
+          shipping: shippingData
+        };
+        const customerHTML = renderToStaticMarkup(
+        // <shippingdetails orderData={emailOrderData} storeDetails={storeDetails} />
+          <ShippingEmail orderData={emailOrderData} storeDetails={storeDetails} />
+      );
+      await emailjs.send(
+        SERVICE_ID,
+        SHIPMENT_TEMPLATE_ID,
+        {
+          to_email: selectedOrder.customer.email,
+          customer_name: selectedOrder.customer.firstName,
+          message_html: customerHTML
+        },
+        PUBLIC_KEY
       );
       setShowShipmentPopup(false);
-    } catch (err) {
-      console.error(err);
+      setShipmentPartner('');
+      setShipmentCode('');
+    } catch (error) {
+      console.error('Shipment email failed:', error);
+      alert('Shipment saved but email failed');
     }
   };
-
-
   const fetchSales = async () => {
     try {
       const snapshot = await getDocs(collection(db, 'storeSale'));
