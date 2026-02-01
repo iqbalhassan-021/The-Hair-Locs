@@ -67,6 +67,18 @@ const CheckoutPage = () => {
     shippingMethod: 'Cash on Delivery',
     paymentMethod: 'cod'
   });
+const [showSummary, setShowSummary] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const totalProducts = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+
+  const previewImage = cartItems[0]?.productImage;
+  const toggleSummary = () => {
+    setShowSummary(prev => !prev);
+  };
 
   const navigate = useNavigate();
   const [giftBoxes, setGiftBoxes] = useState([]);
@@ -242,6 +254,7 @@ const saveOrderToFirestore = async (e) => {
             alert("Something went wrong while processing your order.");
           }
         };
+      
   return (
     <>
     
@@ -268,12 +281,50 @@ const saveOrderToFirestore = async (e) => {
 
         <div className="checkout-left">
           {/* add a order summary here */}
-           <section className="order-summary-top">
-            <h2>Order Summary</h2>
-            <h2>
-              PKR{itemsTotal}
-            </h2>
-          </section>
+         <div className="top-order-summary">
+<button
+  type="button"
+  className="order-summary-top"
+  onClick={toggleSummary}
+>
+  <h2>Order Summary</h2>
+  <h2>
+    PKR {itemsTotal}{" "}
+    <i className={`fa fa-arrow-${showSummary ? "up" : "down"}`}></i>
+  </h2>
+</button>
+
+
+      {showSummary && (
+        <div className="new-order-sum">
+          <div className="checkout-right">
+            <div className="order-items">
+              {cartItems.map(item => (
+                <div className="order-item" key={item.id}>
+                  <img
+                    src={item.productImage}
+                    alt={item.productName}
+                    className="order-item-img"
+                  />
+                  <div>
+                    <p>{item.productName}</p>
+                    <p>Qty: {item.quantity}</p>
+                    <p>Rs.{item.productPrice}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="order-summary">
+              <p>Subtotal: Rs.{itemsTotal}</p>
+              <p>Shipping: Rs.{calculatedShipping}</p>
+              <h4>Total: Rs.{grandTotal}</h4>
+            </div>
+            <br />
+          </div>
+        </div>
+      )}
+       </div>
           <br></br>
           <section className="checkout-section">
             <h3>Email</h3>
@@ -349,9 +400,15 @@ const saveOrderToFirestore = async (e) => {
         <p>
       <strong>Bank:</strong> {storeDetails.bankName} <br/>
         <strong>Account Holder:</strong> {storeDetails.bankHolder} <br/>
-        <strong>IBAN:</strong> {storeDetails.iban}
+        <strong>IBAN:</strong> {storeDetails.iban} <br/>
+        OR<br/>
+        <strong>Account:</strong> Jazzcash  <br/>
+        <strong>Account Holder:</strong> Amzah Mubeen <br/>
+        <strong>Account Number:</strong> 03027049876 <br/>
+        <br/>
+
+        Note: Please transfer Rs. {grandTotal} to the above account and send the screenshot on whatsapp {storeDetails.phone}.
         </p>
-    
       
     )}
   </div>
@@ -360,11 +417,50 @@ const saveOrderToFirestore = async (e) => {
         
         </div>
 
-        <div className="checkout-right">
+      <div className="checkout-right">
+
+      {/* TOP SUMMARY CARD */}
+      <div className="summary-card">
+     
+
+<button
+  className="toggle-summary-btn"
+  onClick={(e) => {
+    e.preventDefault();
+    setShowDetails(prev => !prev);
+  }}
+>
+
+  <div className="btn-left">
+    {previewImage && (
+      <img
+        src={previewImage}
+        alt="Order preview"
+        className="btn-preview-img"
+      />
+    )}
+    <span>{totalProducts} items</span>
+  </div>
+
+  <div className="btn-right">
+    <strong>Rs.{grandTotal}</strong>
+    <i className={`fa fa-chevron-${showDetails ? "up" : "down"}`}></i>
+  </div>
+</button>
+
+      </div>
+
+      {/* DETAILS SECTION */}
+      {showDetails && (
+        <>
           <div className="order-items">
             {cartItems.map(item => (
               <div className="order-item" key={item.id}>
-                <img src={item.productImage} alt={item.productName} className="order-item-img" />
+                <img
+                  src={item.productImage}
+                  alt={item.productName}
+                  className="order-item-img"
+                />
                 <div>
                   <p>{item.productName}</p>
                   <p>Qty: {item.quantity}</p>
@@ -379,9 +475,14 @@ const saveOrderToFirestore = async (e) => {
             <p>Shipping: Rs.{calculatedShipping}</p>
             <h4>Total: Rs.{grandTotal}</h4>
           </div>
-          <br></br>
-            <button type="submit" className="complete-order" >Complete Order</button>
-        </div>
+
+        </>
+      )}
+      <br/>
+          <button type="submit" className="complete-order">
+            Complete Order
+          </button>
+    </div>
       </form>
 
       <BottomBar />

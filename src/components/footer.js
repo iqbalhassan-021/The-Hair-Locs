@@ -116,7 +116,7 @@ const Footer = () => {
           </div>
 
           <div className="social-icons">
-            <a href={siteInfo.facebookID || '#'} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-facebook-f"></i></div></a>
+            <a href={siteInfo.facebook || 'https://www.facebook.com/profile.php?id=61578300291320'} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-facebook-f"></i></div></a>
             <a href={siteInfo.instaID || '#'} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-instagram"></i></div></a>
         <a
                 href={`https://wa.me/${siteInfo.phone || ''}`}

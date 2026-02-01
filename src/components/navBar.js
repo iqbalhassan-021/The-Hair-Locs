@@ -329,11 +329,15 @@ const Navbar = () => {
                     <h2>{item.productName}</h2>
                     <p>PKR {Number(item.productPrice).toFixed(2)}</p>
                     <div className="item-actions">
+                    <div className="cart-btn-holder">
                       <button onClick={() => updateQuantity(item.id, -1)}>-</button>
                       <span>{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                      
+                    </div>
+                
                       <button className="remove-item" onClick={() => removeItem(item.id)}>
-                        x
+                        <i className="fa-solid fa-trash"></i>
                       </button>
                     </div>
                   </div>

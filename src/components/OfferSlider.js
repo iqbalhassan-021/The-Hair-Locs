@@ -80,7 +80,7 @@ const OfferSlider = () => {
                     <p className="offer-heading">{slide.heading}</p>
                     <p className="offer-subheading">{slide.subheading}</p>
                     <Link to="/Sale" className="primary-button">
-                      EXPLORE ALL PRODUCTS
+                      Shop Now
                     </Link>
                   </div>
                 </div>

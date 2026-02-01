@@ -54,7 +54,7 @@ const HeroSlider = () => {
                   <p className="hero-heading">{slide.productName}</p>
                   <p className="hero-subheading">{slide.productDescription}</p>
                   <Link to="/products" className="primary-button">
-                    EXPLORE ALL PRODUCTS
+                    Shop Now
                   </Link>
                 </div>
                 <div className="hero-img-holder">

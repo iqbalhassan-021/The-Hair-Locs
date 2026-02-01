@@ -59,6 +59,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   box-sizing: border-box;
+  font-size: 14px;
 }
 .checkout-section select {
   width: 100%;

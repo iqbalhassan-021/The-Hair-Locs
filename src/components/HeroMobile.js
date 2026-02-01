@@ -55,7 +55,7 @@ const Heromobile = () => {
                   <p className="hero-heading">{product.productName}</p>
                   <p className="hero-subheading">{product.productDescription}</p>
                   <Link to="/products" className="primary-button">
-                    EXPLORE ALL PRODUCTS
+                    Shop Now
                   </Link>
                 </div>
                 <div className="hero-img-holder">
