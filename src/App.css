@@ -2478,6 +2478,7 @@ video {
   color: #666;
   font-weight: bold;
   cursor: pointer;
+  font-size: 18px;
 }
 
 .remove-btn {
@@ -3577,7 +3578,7 @@ form input{
     text-transform: uppercase !important;
 }
 .cart-header h2{
-  font-size: 4vw;
+
   color: #666;
 }
 
@@ -3613,6 +3614,9 @@ form input{
   .order-summary-top h2{
   font-size: 4vw;
   color: #666;
+}
+.cart-header h2 {
+  font-size: 4vw;
 }
 }
 
