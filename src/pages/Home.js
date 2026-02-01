@@ -27,7 +27,7 @@ function Home(){
 
         <meta
           name="description"
-          content="Imzalocc offers premium hair products and accessories designed for healthy, strong, and stylish hair."
+          content="Imzalocc offers premium hair accessories designed for healthy, strong, and stylish hair."
         />
 
         <meta
@@ -41,7 +41,7 @@ function Home(){
         <meta property="og:title" content="Imzalocc | Premium Hair Products & Accessories" />
         <meta
           property="og:description"
-          content="Discover premium hair products and accessories by Imzalocc."
+          content="Discover premium hair accessories by Imzalocc."
         />
         <meta property="og:url" content="https://imzalocc.com" />
         <meta property="og:type" content="website" />
@@ -57,7 +57,7 @@ function Home(){
         <meta name="twitter:image" content="https://imzalocc.com/og-image.jpg" />
       </Helmet>
 
-      <h1 style={{display:'none'}} >Imzalocc – Premium Hair Accessories</h1>
+      
             <Navbar/>
        
      
@@ -66,6 +66,7 @@ function Home(){
             <Categories/>
             <Heromobile/>
             <AllProducts/>
+            <h1 className='google-title' >Imzalocc – Premium Hair Accessories</h1>
             <OfferSlider/>
             <OnSalePage/>
             <GiftComp/>

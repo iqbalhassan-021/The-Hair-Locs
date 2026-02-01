@@ -3671,3 +3671,10 @@ form input{
 .checkout-right{
   padding: 5px 10px 5px 10px !important;
 }
+
+.google-title{
+  text-align: center;
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 10px;
+}
