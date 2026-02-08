@@ -189,25 +189,30 @@ const Product = () => {
                       style={{ width: "100%", maxHeight: "400px", objectFit: "contain" }}
                     />
                   </div>
+<div className="thumbnail-row" style={{ marginTop: "10px" }}>
+  {images
+    ?.filter(img => img && img.trim() !== "")
+    .map((img, idx) => (
+      <img
+        key={idx}
+        src={img}
+        alt={`thumb-${idx}`}
+        onClick={() => setMainImage(img)}
+        onError={(e) => {
+          e.target.style.display = "none";
+        }}
+        style={{
+          width: "60px",
+          height: "60px",
+          margin: "5px",
+          cursor: "pointer",
+          border: mainImage === img ? "2px solid black" : "1px solid #ccc",
+          objectFit: "cover",
+        }}
+      />
+    ))}
+</div>
 
-                  <div className="thumbnail-row" style={{ marginTop: "10px" }}>
-                    {images.map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt={`thumb-${idx}`}
-                        onClick={() => setMainImage(img)}
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          margin: "5px",
-                          cursor: "pointer",
-                          border: mainImage === img ? "2px solid black" : "1px solid #ccc",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ))}
-                  </div>
                 </>
               )}
             </div>

@@ -163,9 +163,15 @@ const Navbar = () => {
   return (
     <>
       {/* Notification */}
-      <div className='notification'>
-        <p>{notification || 'Free shipping on shopping of Rs:3000 or above.'}</p>
-      </div>
+      {notification === "" ? (
+  <div className="notification" style={{display:'none'}}>
+
+  </div>
+) : (
+  <div className="notification">
+    <p>{notification}</p>
+  </div>
+)}
 
       {/* Navbar */}
       <div className="wrapper sticky">

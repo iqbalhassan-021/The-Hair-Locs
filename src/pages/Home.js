@@ -21,7 +21,6 @@ import { Helmet } from "react-helmet-async";
 function Home(){
     return (
         <>
-      
      <Helmet>
         <title>Imzalocc | Premium Hair Accessories</title>
 

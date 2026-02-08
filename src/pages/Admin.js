@@ -354,7 +354,11 @@ const AdminPage = () => {
         alert('Product updated successfully!');
         setEditingProduct(null);
       } else {
-        await addDoc(collection(db, 'products'), productData);
+        await addDoc(collection(db, 'products'), {
+  ...productData,
+  createdAt: serverTimestamp()
+});
+
         alert('Product added successfully!');
       }
       document.getElementById('productForm').reset();

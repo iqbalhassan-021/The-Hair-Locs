@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { getFirestore, collection, getDocs,query, orderBy  } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,86 +9,108 @@ const ITEMS_PER_LOAD = 8;
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const observer = useRef();
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      const db = getFirestore();
-      const productsRef = collection(db, 'products');
-      const onSaleRef = collection(db, 'onSale');
-      const storeSaleRef = collection(db, 'storeSale');
+  
+useEffect(() => {
+  const fetchAllProducts = async () => {
+    const db = getFirestore();
+    const productsRef = collection(db, 'products');
+    const onSaleRef = collection(db, 'onSale');
+    const storeSaleRef = collection(db, 'storeSale');
 
-      try {
-        const [productSnap, saleSnap, storeSaleSnap] = await Promise.all([
-          getDocs(productsRef),
-          getDocs(onSaleRef),
-          getDocs(storeSaleRef)
-        ]);
+    try {
+      const [productSnap, saleSnap, storeSaleSnap] = await Promise.all([
+        getDocs(productsRef),
+        getDocs(onSaleRef),
+        getDocs(storeSaleRef)
+      ]);
 
-        const productList = productSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+      const productList = productSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-        // Map for individual product discounts
-        const saleMap = new Map();
-        saleSnap.docs.forEach(doc => {
-          saleMap.set(doc.id, doc.data());
-        });
+      const saleMap = new Map();
+      saleSnap.docs.forEach(doc => saleMap.set(doc.id, doc.data()));
 
-        // Map for category-specific sales
-        const categorySalesMap = new Map();
-        storeSaleSnap.docs.forEach(doc => {
-          const data = doc.data();
-          if (data.categoryId && data.salePercentage) {
-            categorySalesMap.set(
-              data.categoryId.toLowerCase().trim(),
-              data.salePercentage
-            );
-          }
-        });
+      const categorySalesMap = new Map();
+      storeSaleSnap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.categoryId && data.salePercentage) {
+          categorySalesMap.set(
+            data.categoryId.toLowerCase().trim(),
+            data.salePercentage
+          );
+        }
+      });
 
-        const mergedList = productList.map(product => {
-          const individualSale = saleMap.get(product.id);
+      // Add sale prices
+      const mergedList = productList.map(product => {
+        const individualSale = saleMap.get(product.id);
 
-          if (individualSale?.salePrice) {
-            return { ...product, salePrice: individualSale.salePrice };
-          }
+        if (individualSale?.salePrice) return { ...product, salePrice: individualSale.salePrice };
 
-          const categoryKey = product.productType?.toLowerCase().trim();
-          const categorySalePercentage = categorySalesMap.get(categoryKey);
+        const categoryKey = product.productType?.toLowerCase().trim();
+        const categorySalePercentage = categorySalesMap.get(categoryKey);
 
-          if (categorySalePercentage && product.productPrice) {
-            const discountedPrice =
-              product.productPrice -
-              (product.productPrice * categorySalePercentage) / 100;
+        if (categorySalePercentage && product.productPrice) {
+          const discountedPrice =
+            product.productPrice - (product.productPrice * categorySalePercentage) / 100;
+          return { ...product, salePrice: parseFloat(discountedPrice.toFixed(2)) };
+        }
 
-            return {
-              ...product,
-              salePrice: parseFloat(discountedPrice.toFixed(2)),
-            };
-          }
+        return product;
+      });
 
-          return product;
-        });
+      // Separate products with and without createdAt
+      const withTimestamp = mergedList
+        .filter(p => p.createdAt)
+        .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds); // newest first
 
-        mergedList.sort((a, b) =>
-          b.productCode?.localeCompare(a.productCode)
-        );
+      const withoutTimestamp = mergedList.filter(p => !p.createdAt);
 
-        setProducts(mergedList);
-      } catch (error) {
-        console.error('❌ Error fetching data:', error);
-      }
-    };
+      // Merge them: newest first, then old products without createdAt
+      const finalList = [...withTimestamp, ...withoutTimestamp];
 
-    fetchAllProducts();
-  }, []);
-
-  const loadMoreProducts = () => {
-    setVisibleCount(prev =>
-      Math.min(prev + ITEMS_PER_LOAD, products.length)
-    );
+      setProducts(finalList);
+    } catch (error) {
+      console.error('❌ Error fetching data:', error);
+    }
   };
+
+  fetchAllProducts();
+}, []);
+
+  const loadMoreProducts = useCallback(() => {
+    if (visibleCount >= products.length) return;
+
+    setLoadingMore(true);
+
+    // small delay so skeleton is actually visible
+    setTimeout(() => {
+      setVisibleCount(prev =>
+        Math.min(prev + ITEMS_PER_LOAD, products.length)
+      );
+      setLoadingMore(false);
+    }, 600);
+  }, [products.length, visibleCount]);
+
+  const lastProductRef = useCallback(
+    node => {
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          loadMoreProducts();
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [loadMoreProducts]
+  );
 
   const addToCart = (product) => {
     try {
@@ -119,16 +141,14 @@ const AllProducts = () => {
           ];
 
       localStorage.setItem('cart', JSON.stringify(updatedCart));
-
-    window.dispatchEvent(new Event('toggle-cart'));
-      // toast.success(`${product.productName} added to cart!`, {
-      //   position: 'bottom-right',
-      // });
+      window.dispatchEvent(new Event('toggle-cart'));
     } catch (error) {
       console.error('❌ Error adding to cart:', error);
       toast.error('Failed to add to cart.', { position: 'bottom-right' });
     }
   };
+
+  const skeletons = Array.from({ length: ITEMS_PER_LOAD });
 
   return (
     <>
@@ -141,75 +161,84 @@ const AllProducts = () => {
 
             <div className="grid-4x">
               {products.length === 0 ? (
-                <p>No products found.</p>
+                skeletons.map((_, i) => (
+                  <div className="product-card skeleton-card" key={i}>
+                    <div className="skeleton skeleton-img"></div>
+                    <div className="skeleton skeleton-text"></div>
+                    <div className="skeleton skeleton-price"></div>
+                  </div>
+                ))
               ) : (
-                products.slice(0, visibleCount).map(product => (
-                  <Link
-                    to={`/product/${product.id}`}
-                    className="no-decoration"
-                    key={product.id}
-                  >
-                    <div className="product-card">
-                      <div
-                        className="product-img-container"
-                        style={{
-                          backgroundImage: `url(${product.productImage})`,
-                        }}
-                      >
-                        <div className="product-buttons">
-                          <button
-                            className="product-button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              addToCart(product);
-                            }}
-                          >
-                            <i className="fa-regular fas fa-cart-plus"></i>
-                          </button>
-                        </div>
-                      </div>
+                products.slice(0, visibleCount).map((product, index) => {
+                  const isLast = index === visibleCount - 1;
 
-                      <div className="product-text-holder">
-                        <div className="product-name">
-                          <p className="product-name-text">
-                            {product.productName}
-                          </p>
+                  return (
+                    <Link
+                      to={`/product/${product.id}`}
+                      className="no-decoration"
+                      key={product.id}
+                      ref={isLast ? lastProductRef : null}
+                    >
+                      <div className="product-card">
+                        <div
+                          className="product-img-container"
+                          style={{
+                            backgroundImage: `url(${product.productImage})`,
+                          }}
+                        >
+                          <div className="product-buttons">
+                            <button
+                              className="product-button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                addToCart(product);
+                              }}
+                            >
+                              <i className="fa-regular fas fa-cart-plus"></i>
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="product-price">
-                          {product.salePrice &&
-                          product.salePrice !== product.productPrice ? (
-                            <>
-                              <p className="product-price-text text-strike">
+                        <div className="product-text-holder">
+                          <div className="product-name">
+                            <p className="product-name-text">
+                              {product.productName}
+                            </p>
+                          </div>
+
+                          <div className="product-price">
+                            {product.salePrice &&
+                            product.salePrice !== product.productPrice ? (
+                              <>
+                                <p className="product-price-text text-strike">
+                                  Rs.{product.productPrice}
+                                </p>
+                                <p className="product-sale-price-text">
+                                  Rs.{product.salePrice}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="product-price-text">
                                 Rs.{product.productPrice}
                               </p>
-                              <p className="product-sale-price-text">
-                                Rs.{product.salePrice}
-                              </p>
-                            </>
-                          ) : (
-                            <p className="product-price-text">
-                              Rs.{product.productPrice}
-                            </p>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))
+                    </Link>
+                  );
+                })
               )}
-            </div>
 
-            {visibleCount < products.length && (
-              <div style={{ textAlign: 'center', marginTop: '30px' , display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <button
-                  onClick={loadMoreProducts}
-                  className="primary-button"
-                >
-                  LOAD MORE
-                </button>
-              </div>
-            )}
+              {loadingMore &&
+                skeletons.map((_, i) => (
+                  <div className="product-card skeleton-card" key={`load-${i}`}>
+                    <div className="skeleton skeleton-img"></div>
+                    <div className="skeleton skeleton-text"></div>
+                    <div className="skeleton skeleton-price"></div>
+                  </div>
+                ))}
+            </div>
 
             {visibleCount >= products.length && (
               <p className="no-more-products">NO MORE PRODUCTS</p>
