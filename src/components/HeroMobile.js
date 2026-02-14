@@ -13,12 +13,24 @@ const Heromobile = () => {
         const productsRef = collection(db, "products");
         const snapshot = await getDocs(productsRef);
 
-        const productData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+       const productData = snapshot.docs.map(doc => ({
+  id: doc.id,
+  ...doc.data(),
+}));
 
-        setProducts(productData);
+// products WITH createdAt → newest first
+const withCreatedAt = productData
+  .filter(p => p.createdAt)
+  .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+
+// products WITHOUT createdAt
+const withoutCreatedAt = productData.filter(p => !p.createdAt);
+
+// merge + limit to 5
+const finalProducts = [...withCreatedAt, ...withoutCreatedAt].slice(0, 5);
+
+setProducts(finalProducts);
+
       } catch (error) {
         console.error("❌ Error fetching product data:", error);
       }

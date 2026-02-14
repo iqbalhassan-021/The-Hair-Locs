@@ -3722,3 +3722,12 @@ form input{
   height: 18px;
   width: 40%;
 }
+
+ul.dropdown li a.navLink{
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-bottom: solid 1px #ccc;
+  text-decoration: none;
+}

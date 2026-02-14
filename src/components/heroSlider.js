@@ -13,12 +13,25 @@ const HeroSlider = () => {
         const productsRef = collection(db, "products");
         const snapshot = await getDocs(productsRef);
 
-        const slideData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+const slideData = snapshot.docs.map(doc => ({
+  id: doc.id,
+  ...doc.data(),
+}));
 
-        setSlides(slideData);
+// Products WITH createdAt → newest first
+const withCreatedAt = slideData
+  .filter(p => p.createdAt)
+  .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+
+// Products WITHOUT createdAt
+const withoutCreatedAt = slideData.filter(p => !p.createdAt);
+
+// Merge and LIMIT to 5
+const finalSlides = [...withCreatedAt, ...withoutCreatedAt].slice(0, 5);
+
+setSlides(finalSlides);
+
+
       } catch (error) {
         console.error("❌ Error fetching products for slider:", error);
       }

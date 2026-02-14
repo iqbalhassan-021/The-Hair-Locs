@@ -56,9 +56,10 @@ const CategoryProductsPage = () => {
             return product;
           });
 
-        productList.sort((a, b) =>
-          b.productCode.localeCompare(a.productCode)
-        );
+      productList.sort((a, b) =>
+  b.createdAt?.toMillis() - a.createdAt?.toMillis()
+);
+
 
         setProducts(productList);
       } catch (error) {

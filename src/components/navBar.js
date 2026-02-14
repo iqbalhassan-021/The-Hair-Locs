@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, orderBy, limit, where  } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
@@ -38,16 +38,36 @@ const Navbar = () => {
       }
     };
 
-    const fetchCategories = async () => {
-      const categoryCollection = collection(db, 'Category');
-      try {
-        const snapshot = await getDocs(categoryCollection);
-        const data = snapshot.docs.map(doc => doc.data());
-        setCategories(data);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
+ 
+const fetchCategories = async () => {
+  const categoryCollection = collection(db, 'Category');
+
+  try {
+    const snapshot = await getDocs(categoryCollection);
+
+    const data = snapshot.docs
+      .map(doc => doc.data())
+      .sort((a, b) => {
+
+        // Ranked categories first
+        if (a.rank && b.rank) {
+          return a.rank - b.rank; // lower rank = higher priority
+        }
+
+        if (a.rank) return -1;
+        if (b.rank) return 1;
+
+        // If neither has rank → alphabetical
+        return a.categoryName.localeCompare(b.categoryName);
+      });
+
+    setCategories(data);
+
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+  }
+};
+
 
     const fetchNotification = async () => {
       try {
@@ -220,72 +240,34 @@ const Navbar = () => {
               <Link to="/ForHer" className="no-decoration navLink"><p>For Her</p></Link>
 
               {/* Women Dropdown */}
-              <div className="dropdown-section">
+                 <div className="dropdown-section">
                 <p onClick={() => setShowWomen(!showWomen)} className="dropdown-title clickable">
 
-                  <span>Women</span>
+                  <span>Categories</span>
                   <span>
                     {showWomen ? '▲' : '▼'}
                   </span>
                 </p>
                 {showWomen && (
-                  <ul className="dropdown">
-                    {categories
-                      .filter(cat =>
-                        [
-                          'Bow Scrunchies',
-                          'Scrunchies',
-                          'Sailor Bow',
-                          'Classic Bow',
-                          'Bow Ties',
-                          'Tail Bow',
-                        ].includes(cat.categoryName)
-                      )
-                      .map((cat, i) => (
-                        <li key={i}>
-                          <Link to={`/category/${cat.categoryName}`} className="no-decoration navLink" onClick={closeMobileNav}>
-                            {cat.categoryName}
-                          </Link>
-                        </li>
-                      ))}
-                  </ul>
+<ul className="dropdown">
+  {categories.map((cat, i) => (
+    <li key={i}>
+      <Link
+        to={`/category/${cat.categoryName}`}
+        className="no-decoration navLink"
+        onClick={closeMobileNav}
+      >
+        {cat.categoryName}
+      </Link>
+    </li>
+  ))}
+</ul>
+
+
                 )}
               </div>
 
-              {/* Kids Dropdown */}
-              <div className="dropdown-section">
-                <p onClick={() => setShowKids(!showKids)} className="dropdown-title clickable">
-
-                  <span>
-                    Kids
-                  </span>
-                  <span>
-                    {showKids ? '▲' : '▼'}
-                  </span>
-                </p>
-                {showKids && (
-                  <ul className="dropdown">
-                    {categories
-                      .filter(cat =>
-                        [
-                          'Sailor Bow',
-                          'Classic Bow',
-                          'Butterfly Bows',
-                          'Hair pins for babies',
-                          'Kids Hair Bands',
-                          'Hair pins for girls'
-                        ].includes(cat.categoryName)
-                      )
-                      .map((cat, i) => (
-                        <li key={i}>
-                          <Link to={`/category/${cat.categoryName}`} className="no-decoration navLink" onClick={closeMobileNav}>
-                            {cat.categoryName}
-                          </Link>
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </div>
+            
 
               
               <div className="social-icons new-social-icons">
