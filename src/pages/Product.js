@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy  } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import Navbar from '../components/navBar';
 import Footer from '../components/footer';
@@ -7,8 +7,10 @@ import AllProducts from '../components/AllProducts';
 import BottomBar from '../components/BottomBar';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 const Product = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,11 @@ const Product = () => {
         }
 
         const prodData = docSnap.data();
-        setProduct(prodData);
+        setProduct({
+            id: docSnap.id,
+            ...prodData,
+            stockStatus: prodData.stockStatus ?? "in", // fallback if missing
+          });
 
         // set default main image
         setMainImage(prodData.productImage);
@@ -159,7 +165,48 @@ const Product = () => {
       toast.error("Failed to add to cart.", { position: "bottom-right" });
     }
   };
+const buy_now = (product) => {
+  try {
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const actualPrice = salePrice || product.productPrice;
 
+    // Check if item already exists to avoid duplicates
+    const existingProduct = existingCart.find((item) => item.id === product.id);
+    let updatedCart;
+
+    if (existingProduct) {
+      updatedCart = existingCart.map((item) =>
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    } else {
+      updatedCart = [
+        ...existingCart,
+        {
+          id: product.id,
+          productName: product.productName,
+          productPrice: actualPrice,
+          productImage: product.productImage,
+          productSize: product.productSize || "Not Specified",
+          productColor: product.productColor || "Not Specified",
+          productCode: product.productCode,
+          productType: product.productType,
+          quantity: 1,
+        },
+      ];
+    }
+
+    // Save to storage
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    // Optional: If your App uses a Context or Redux for cart state, 
+    // you might need to trigger an update here so the CheckoutPage 
+    // sees the new item immediately.
+    
+    navigate('/checkout');
+  } catch (error) {
+    console.error("❌ Buy Now failed:", error);
+  }
+};
   if (loading) return <p>Loading...</p>;
   if (!product) return <p>No product found</p>;
 
@@ -169,6 +216,7 @@ const Product = () => {
     product.productImage2,
     product.productImage3,
   ].filter(Boolean);
+const isOutOfStock = product.stockStatus === "out";
 
   return (
     <>
@@ -218,7 +266,10 @@ const Product = () => {
             </div>
 
             <div className="the-details">
-              <p className="title">{product.productName}</p>
+              <p className="title">{product.productName}
+              </p>
+              <p className="category">{product.categoryId}</p>
+             
               <br />
               <p className="price">
                 {salePrice ? (
@@ -301,20 +352,49 @@ const Product = () => {
                 </div>
               </div>
 
-              {products
-                .filter((pay) => pay.productCode === product.productCode)
-                .map((pay) => (
-                  <button
-                    className="primary-button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addToCart(product);
-                    }}
-                  >
-                    <p>Add to Cart</p>
-                    <i className="fas fa-shopping-cart"></i>
-                  </button>
-                ))}
+            {products
+  .filter((pay) => pay.productCode === product.productCode)
+  .map((pay) =>
+    isOutOfStock ? (
+      <div
+        style={{
+          marginTop: "15px",
+          padding: "12px",
+          background: "#fee2e2",
+          color: "#991b1b",
+          borderRadius: "6px",
+          textAlign: "center",
+          fontWeight: "600",
+        }}
+      >
+        ❌ This product is currently Out of Stock
+      </div>
+    ) : (
+      <>
+      <button
+        className="primary-button"
+        onClick={(e) => {
+          e.preventDefault();
+          addToCart(product);
+        }}
+      >
+        <p>Add to Cart</p>
+        <i className="fas fa-shopping-cart"></i>
+      </button>
+      <button
+        className="primary-button"
+        onClick={(e) => {
+          e.preventDefault();
+          buy_now(product);
+        }}
+      >
+        <p>Buy Now</p>
+        <i className="fas fa-shopping-bag"></i>
+      </button>
+      </>
+    )
+  )}
+
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ import Sale from './pages/onSale';
 import CategoryProductsPage  from './pages/CategoryProductsPage';
 import GiftPage from './pages/GiftPage';
 import OrderConfirmation from './pages/OrderConfirmation';
-
+import SearchPage from "./pages/Search";
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
@@ -52,6 +52,7 @@ function App() {
     <Route path="/Category/:categoryName" element={<CategoryProductsPage />} />
     <Route path="/GiftPage" element={<GiftPage />} />
     <Route path="/OrderConfirmation" element={<OrderConfirmation />} />
+    <Route path="/Search" element={<SearchPage />} />
     </Routes>
 
 

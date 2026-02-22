@@ -2807,7 +2807,7 @@ video {
   height: auto;
   width: 100%;
   padding: 10px;
-  background-image: url('/public/assets/images/gift.jpg');
+  background-image: url('https://i.postimg.cc/tgmdP41z/IMG_20260216_WA0054.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -2818,6 +2818,7 @@ video {
   justify-content: center;
   align-items: end;
   display: none;
+  min-height: 80vh;
 }
 .info-box{
   background-color: #fac6aed0;
@@ -2858,7 +2859,7 @@ video {
   font-weight: 500;
   margin-top: 10px;
   margin-bottom: 10px;
-  border-bottom: solid 1px #ccc;
+  /* border-bottom: solid 1px #ccc; */
 }
 .mobile-nav .dropdown {
   list-style: none;
@@ -2867,7 +2868,11 @@ video {
 }
 
 .mobile-nav .dropdown li {
-  margin-bottom: 0.2rem;
+      margin-bottom: 0.2rem;
+    min-height: 30px;
+    align-items: center;
+    display: flex;
+    border-bottom: 1px solid #ccc;
 }
 .checkout-form{
   width: 100%;
@@ -3728,6 +3733,11 @@ ul.dropdown li a.navLink{
   font-weight: 500;
   margin-top: 10px;
   margin-bottom: 10px;
-  border-bottom: solid 1px #ccc;
+  /* border-bottom: solid 1px #ccc; */
   text-decoration: none;
+}
+.mobile-nav .dropdown{
+
+  max-height: 300px;
+  overflow: scroll;
 }

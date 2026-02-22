@@ -11,7 +11,11 @@ const NewProducts = () => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Classic Bow');
+  const [selectedCategory, setSelectedCategory] = useState('Sailor Bow');
+  const [minPrice, setMinPrice] = useState("");
+const [maxPrice, setMaxPrice] = useState("");
+const [priceSort, setPriceSort] = useState("");
+
 useEffect(() => {
   const fetchCategories = async () => {
     const db = getFirestore();
@@ -111,19 +115,27 @@ useEffect(() => {
   }, []);
 
   const sortProductsByCode = (productsArray) => {
-    return productsArray.sort((a, b) => {
-      const numA = parseInt(a.productCode?.replace(/[^0-9]/g, '') || '0', 10);
-      const numB = parseInt(b.productCode?.replace(/[^0-9]/g, '') || '0', 10);
-      return numB - numA;
-    });
+   return productsArray.sort((a, b) => {
+    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+
+    return dateB - dateA; // newest first
+  });
   };
 
-  const handleCategoryClick = (categoryName) => {
-    const filtered = sortProductsByCode(
-      products.filter(product => product.productType === categoryName)
-    );
-    setFilteredProducts(filtered);
-  };
+const handleCategoryClick = (categoryName) => {
+  setSelectedCategory(categoryName);
+  setMinPrice("");
+  setMaxPrice("");
+  setPriceSort("");
+
+  const filtered = products.filter(
+    product => product.productType === categoryName
+  );
+
+  setFilteredProducts(filtered);
+};
+
 
   const handleSelectChange = (event) => {
     const categoryName = event.target.value;
@@ -138,22 +150,30 @@ useEffect(() => {
     return products.filter(product => product.productType === categoryName).length;
   };
 
-  const addToCart = (product) => {
-    try {
-      const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-      const actualPrice = product.salePrice || product.productPrice;
-      let updatedCart;
+ const addToCart = (product) => {
+  try {
+    // 🚫 Prevent adding if out of stock
+    if (product.stockStatus === "out") {
+      toast.error("This product is currently out of stock.", {
+        position: "bottom-right",
+      });
+      return;
+    }
 
-      const existingProduct = existingCart.find(item => item.id === product.id);
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const actualPrice = product.salePrice || product.productPrice;
 
-      if (existingProduct) {
-        updatedCart = existingCart.map(item =>
+    const existingProduct = existingCart.find(
+      item => item.id === product.id
+    );
+
+    const updatedCart = existingProduct
+      ? existingCart.map(item =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        );
-      } else {
-        updatedCart = [
+        )
+      : [
           ...existingCart,
           {
             id: product.id,
@@ -167,16 +187,53 @@ useEffect(() => {
             quantity: 1,
           },
         ];
-      }
 
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      
-      toast.success(`${product.productName} added to cart!`, { position: 'bottom-right' });
-    } catch (error) {
-      console.error('❌ Error adding to cart:', error);
-      toast.error('Failed to add to cart.', { position: 'bottom-right' });
-    }
-  };
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event('toggle-cart'));
+
+  } catch (error) {
+    console.error('❌ Error adding to cart:', error);
+    toast.error('Failed to add to cart.', { position: 'bottom-right' });
+  }
+};
+
+const applyPriceFilter = () => {
+  let filtered = products.filter(
+    product => product.productType === selectedCategory
+  );
+
+  // Apply min price
+  if (minPrice !== "") {
+    filtered = filtered.filter(product =>
+      (product.salePrice || product.productPrice) >= Number(minPrice)
+    );
+  }
+
+  // Apply max price
+  if (maxPrice !== "") {
+    filtered = filtered.filter(product =>
+      (product.salePrice || product.productPrice) <= Number(maxPrice)
+    );
+  }
+
+  // Sorting
+  if (priceSort === "low-high") {
+    filtered.sort((a, b) =>
+      (a.salePrice || a.productPrice) -
+      (b.salePrice || b.productPrice)
+    );
+  }
+
+  if (priceSort === "high-low") {
+    filtered.sort((a, b) =>
+      (b.salePrice || b.productPrice) -
+      (a.salePrice || a.productPrice)
+    );
+  }
+
+  setFilteredProducts(filtered);
+};
+
 
   return (
     <>
@@ -213,6 +270,15 @@ useEffect(() => {
     )} 
   </ul>
 
+<div className="sidebar-price-filter">
+  <h3>Filter by Price</h3>
+
+
+
+  <div style={{ marginTop: "15px" }}>
+
+  </div>
+</div>
 
 </div>
 
@@ -229,21 +295,21 @@ useEffect(() => {
     Filter Products by:
   </label>
 
-  <select
-    id="price-filter"
-    // value={priceFilter}
-    // onChange={(e) => setPriceFilter(e.target.value)}
-    style={{
-      marginLeft: '10px',
-      padding: '6px',
-      borderRadius: '6px',
-      cursor: 'pointer'
-    }}
-  >
-    <option value="">Default</option>
-    <option value="low-high">Price: Low → High</option>
-    <option value="high-low">Price: High → Low</option>
-  </select>
+    <select
+      value={priceSort}
+      onChange={(e) => {
+        setPriceSort(e.target.value);
+        applyPriceFilter();
+      }}
+      style={{
+        padding: "6px",
+        borderRadius: "6px"
+      }}
+    >
+      <option value="">Default</option>
+      <option value="low-high">Price: Low → High</option>
+      <option value="high-low">Price: High → Low</option>
+    </select>
 </div>
 
                 </div>
@@ -259,17 +325,23 @@ useEffect(() => {
                             className="product-img-container"
                             style={{ backgroundImage: `url(${product.productImage})` }}
                           >
-                            <div className="product-buttons">
-                              <button
-                                className="product-button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  addToCart(product);
-                                }}
-                              >
-                                <i className="fa-regular fas fa-cart-plus"></i>
-                              </button>
-                            </div>
+                                               <div className="product-buttons">
+  {product.stockStatus === "out" ? (
+    <button className="product-button disabled" disabled style={{border:'none',backgroundColor:'red',color:'white'}}>
+      Out of Stock
+    </button>
+  ) : (
+    <button
+      className="product-button"
+      onClick={(e) => {
+        e.preventDefault();
+        addToCart(product);
+      }}
+    >
+      <i className="fa-regular fas fa-cart-plus"></i>
+    </button>
+  )}
+</div>
                           </div>
                           <div className="product-text-holder">
                             <div className="product-name">

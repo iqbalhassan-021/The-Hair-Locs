@@ -237,13 +237,12 @@ const fetchCategories = async () => {
             {/* Mobile Nav */}
             <div className="mobile-nav" id="mobilenav">
               <Link to="/Sale" className="no-decoration navLink"><p>Sale</p></Link>
-              <Link to="/ForHer" className="no-decoration navLink"><p>For Her</p></Link>
-
+                <Link to="/category/face mask" className="no-decoration navLink"><p>Face Mask</p></Link>
               {/* Women Dropdown */}
                  <div className="dropdown-section">
                 <p onClick={() => setShowWomen(!showWomen)} className="dropdown-title clickable">
 
-                  <span>Categories</span>
+                  <span>Hair Accessories</span>
                   <span>
                     {showWomen ? '▲' : '▼'}
                   </span>
@@ -270,7 +269,7 @@ const fetchCategories = async () => {
             
 
               
-              <div className="social-icons new-social-icons">
+              <div className="social-icons new-social-icons" id='navsocial'>
                 <p>Follow Us:</p>
                 <div className="social-icon-list">
     <a href={'https://www.facebook.com/profile.php?id=61578300291320'} className="no-decoration"><div className="social-icon"><i className="fa-brands fa-facebook-f"></i></div></a>

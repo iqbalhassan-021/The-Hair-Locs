@@ -685,7 +685,8 @@ const AdminPage = () => {
       'saleSectionTab',
       'bannerSectionTab',
       'notification',
-      'floatingMessage'
+      'floatingMessage',
+      'stock'
     ];
 
     tabs.forEach(id => {
@@ -809,7 +810,27 @@ const AdminPage = () => {
     color: '#202223'
   };
 
+const updateStockStatus = async (id, status) => {
+  try {
+    const productRef = doc(db, "products", id);
 
+    // This will CREATE the field if it doesn't exist
+    await updateDoc(productRef, {
+      stockStatus: status,
+    });
+
+    // Update local state after Firestore succeeds
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === id
+          ? { ...product, stockStatus: status }
+          : product
+      )
+    );
+  } catch (error) {
+    console.error("Error updating stock status:", error);
+  }
+};
   return (
 
     <div className="admin-page">
@@ -846,6 +867,7 @@ const AdminPage = () => {
                 { label: 'Home', tab: 'hometab' },
                 { label: 'Store Sale', tab: 'storeSaleTab' },
                 { label: 'Orders', tab: 'orders' },
+                { label: 'Stock', tab: 'stock' },
                 { label: 'Notification', tab: 'notification' },
                 { label: 'Floating Message', tab: 'floatingMessage' },
                 { label: 'Upload a Product', tab: 'uploadtab' },
@@ -969,6 +991,115 @@ const AdminPage = () => {
                   </form>
                 </div>
               </div>
+              {/* stocks */}
+       {/* Stock Tab */}
+<div
+  className="homeTab"
+  id="stock"
+  style={{
+    display: 'none',
+    margin: 0,
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    color: '#111827',
+  }}
+>
+  <div
+    style={{
+      margin: 'auto',
+      background: '#ffffff',
+      padding: '32px',
+      borderRadius: '8px',
+     
+    }}
+  >
+    <h3 style={{ marginTop: 0, fontSize: '22px', fontWeight: 600, marginBottom: '24px' }}>
+      Stock Management
+    </h3>
+{products.map((product) => (
+  <div
+    key={product.id}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '16px',
+      background: '#f9fafb',
+      borderRadius: '8px',
+      border: product.stockStatus === 'out'
+        ? '1px solid #FCA5A5'
+        : '1px solid #E5E7EB',
+    }}
+  >
+    {/* Left side - Image + Name + Status */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <img
+        src={product.productImage || 'https://via.placeholder.com/80'}
+        alt={product.productName}
+        style={{
+          width: '60px',
+          height: '60px',
+          borderRadius: '8px',
+          objectFit: 'cover',
+        }}
+      />
+
+      <div>
+        <div style={{ fontWeight: 600 }}>
+          {product.productName}
+        </div>
+
+        {product.stockStatus === 'out' && (
+          <div
+            style={{
+              marginTop: '6px',
+              fontSize: '13px',
+              color: '#B91C1C',
+              fontWeight: 500,
+            }}
+          >
+            ⚠️ This product is out of stock.
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Right side - Stock Buttons */}
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <button
+        onClick={() => updateStockStatus(product.id, 'in')}
+        style={{
+          padding: '6px 14px',
+          borderRadius: '6px',
+          border: '1px solid #10B981',
+          background: product.stockStatus === 'in' ? '#10B981' : '#ECFDF5',
+          color: product.stockStatus === 'in' ? '#fff' : '#065F46',
+          cursor: 'pointer',
+          fontSize: '13px',
+        }}
+      >
+        In Stock
+      </button>
+
+      <button
+        onClick={() => updateStockStatus(product.id, 'out')}
+        style={{
+          padding: '6px 14px',
+          borderRadius: '6px',
+          border: '1px solid #EF4444',
+          background: product.stockStatus === 'out' ? '#EF4444' : '#FEF2F2',
+          color: product.stockStatus === 'out' ? '#fff' : '#991B1B',
+          cursor: 'pointer',
+          fontSize: '13px',
+        }}
+      >
+        Out of Stock
+      </button>
+    </div>
+  </div>
+))}
+
+  </div>
+</div>
 
               {/* Floating Message */}
 

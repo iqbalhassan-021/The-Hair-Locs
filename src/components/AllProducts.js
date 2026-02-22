@@ -112,41 +112,53 @@ useEffect(() => {
     [loadMoreProducts]
   );
 
-  const addToCart = (product) => {
-    try {
-      const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-      const actualPrice = product.salePrice || product.productPrice;
-
-      const existingProduct = existingCart.find(item => item.id === product.id);
-
-      const updatedCart = existingProduct
-        ? existingCart.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
-        : [
-            ...existingCart,
-            {
-              id: product.id,
-              productName: product.productName,
-              productPrice: actualPrice,
-              productImage: product.productImage,
-              productSize: product.productSize,
-              productColor: product.productColor,
-              productCode: product.productCode,
-              productType: product.productType,
-              quantity: 1,
-            },
-          ];
-
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      window.dispatchEvent(new Event('toggle-cart'));
-    } catch (error) {
-      console.error('❌ Error adding to cart:', error);
-      toast.error('Failed to add to cart.', { position: 'bottom-right' });
+ const addToCart = (product) => {
+  try {
+    // 🚫 Prevent adding if out of stock
+    if (product.stockStatus === "out") {
+      toast.error("This product is currently out of stock.", {
+        position: "bottom-right",
+      });
+      return;
     }
-  };
+
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const actualPrice = product.salePrice || product.productPrice;
+
+    const existingProduct = existingCart.find(
+      item => item.id === product.id
+    );
+
+    const updatedCart = existingProduct
+      ? existingCart.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      : [
+          ...existingCart,
+          {
+            id: product.id,
+            productName: product.productName,
+            productPrice: actualPrice,
+            productImage: product.productImage,
+            productSize: product.productSize,
+            productColor: product.productColor,
+            productCode: product.productCode,
+            productType: product.productType,
+            quantity: 1,
+          },
+        ];
+
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event('toggle-cart'));
+
+  } catch (error) {
+    console.error('❌ Error adding to cart:', error);
+    toast.error('Failed to add to cart.', { position: 'bottom-right' });
+  }
+};
+
 
   const skeletons = Array.from({ length: ITEMS_PER_LOAD });
 
@@ -186,17 +198,25 @@ useEffect(() => {
                             backgroundImage: `url(${product.productImage})`,
                           }}
                         >
-                          <div className="product-buttons">
-                            <button
-                              className="product-button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                addToCart(product);
-                              }}
-                            >
-                              <i className="fa-regular fas fa-cart-plus"></i>
-                            </button>
-                          </div>
+                      <div className="product-buttons">
+  {product.stockStatus === "out" ? (
+    <button className="product-button disabled" disabled style={{border:'none',backgroundColor:'red',color:'white'}}>
+      Out of Stock
+    </button>
+  ) : (
+    <button
+      className="product-button"
+      onClick={(e) => {
+        e.preventDefault();
+        addToCart(product);
+      }}
+    >
+      <i className="fa-regular fas fa-cart-plus"></i>
+    </button>
+  )}
+</div>
+
+
                         </div>
 
                         <div className="product-text-holder">

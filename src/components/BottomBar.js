@@ -1,7 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getFirestore, collection, getDocs, query, orderBy, limit, where  } from 'firebase/firestore';
 import { Link, useLocation } from 'react-router-dom';
 
 const BottomBar = () => {
+    const [phone, setPhone] = useState('');
+  useEffect(() => {
+    const db = getFirestore();
+
+    const fetchStoreDetails = async () => {
+      const dataCollection = collection(db, 'storeDetails');
+      try {
+        const querySnapshot = await getDocs(dataCollection);
+        if (!querySnapshot.empty) {
+          const siteInfo = querySnapshot.docs[0].data();
+       
+          setPhone(siteInfo.phone);
+        }
+      } catch (error) {
+        console.error("Error retrieving store data: ", error);
+      }
+    };
+    fetchStoreDetails();
+
+
+
+  }, []);
+
+
+
+
   const location = useLocation();
 const handleCartClick = (e) => {
     e.preventDefault(); // Stop the Link from navigating if you use one
@@ -12,24 +39,25 @@ const handleCartClick = (e) => {
 
   return (
     <div className="bottom-bar">
-      <Link to="/" className={`bottom-link ${isActive('/')}`}>
-        <i className="fas fa-home"></i>
-        <span>Home</span>
-      </Link>
-
-      <Link to="/Products" className={`bottom-link ${isActive('/Products')}`}>
+        <Link to="/Products" className={`bottom-link ${isActive('/Products')}`}>
         <i className="fas fa-shop"></i>
         <span>Shop</span>
       </Link>
 
-      <Link to="/Sale" className={`bottom-link ${isActive('/Sale')}`}>
-        <i className="fas fa-tags"></i>
-        <span>Sale</span>
+
+      <Link to="/Search" className={`bottom-link ${isActive('/Search')}`}>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search</span>
       </Link>
 
-      <Link  to="/ForHer" className={`bottom-link ${isActive('/ForHer')}`}>
-        <i className="fas fa-gift"></i>
-        <span>For Her</span>
+      <Link onClick={handleCartClick} className={`bottom-link ${isActive('/Sale')}`}>
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>Cart</span>
+      </Link>
+
+      <Link  to={`https://wa.me/${phone || ''}`}  className={`bottom-link ${isActive('/ForHer')}`}>
+       <i class="fa-brands fa-whatsapp" style={{color:'green'}}></i>
+        <span style={{color:'green'}}>Whatsapp</span>
       </Link>
     </div>
   );

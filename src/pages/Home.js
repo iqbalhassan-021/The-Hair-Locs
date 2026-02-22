@@ -26,7 +26,7 @@ function Home(){
 
         <meta
           name="description"
-          content="Imzalocc offers premium hair accessories designed for healthy, strong, and stylish hair."
+          content="Imzalocc offers premium hair products and stylish hair accessories designed for beautiful hair. Discover our signature Sailor Bows, Tail Bows, and Kids Hair Bands, along with a wide collection including Bow Scrunchies, Scrunchies, Classic Bows, Fancy Bows, Butterfly Bows, Double Toned Bows, Net Bows, Printed Sailor Bows, Checkered Sailor Bows, Hair Bows, Mini Kids Bows, Hair Catchers, Hair Pins for Babies and Girls, Bow Ties, and Face Masks — all crafted with quality you can trust."
         />
 
         <meta
@@ -37,7 +37,7 @@ function Home(){
         <meta name="robots" content="index, follow" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="Imzalocc | Premium Hair Products & Accessories" />
+        <meta property="og:title" content="Imzalocc | Premium Hair Accessories" />
         <meta
           property="og:description"
           content="Discover premium hair accessories by Imzalocc."
@@ -48,7 +48,7 @@ function Home(){
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Imzalocc | Premium Hair Products & Accessories" />
+        <meta name="twitter:title" content="Imzalocc | Premium Hair Accessories" />
         <meta
           name="twitter:description"
           content="Premium hair products and accessories for modern hair care."
