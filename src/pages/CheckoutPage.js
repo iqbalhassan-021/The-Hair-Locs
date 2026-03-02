@@ -11,6 +11,7 @@ import emailjs from '@emailjs/browser';
 
 import EmailTemplate from '../emailing/customerside'
 import OwnerEmailTemplate from '../emailing/ownerside'
+import { toast } from 'react-toastify';
 
 const provinces = [
   'Punjab',
@@ -254,7 +255,63 @@ const saveOrderToFirestore = async (e) => {
             alert("Something went wrong while processing your order.");
           }
         };
-      
+const handleWhatsAppOrder = (e) => {
+  e.preventDefault();
+
+  // 1️⃣ Check cart
+  if (cartItems.length === 0) {
+    alert("Your cart is empty.");
+    return;
+  }
+  
+  // 2️⃣ Required fields validation
+  const requiredFields = [
+    formData.firstName,
+    formData.lastName,
+    formData.email,
+    formData.phone,
+    formData.street,
+    formData.shippingMethod,
+    formData.paymentMethod
+  ];
+
+  const isFormValid = requiredFields.every(
+    field => field && field.toString().trim() !== ""
+  );
+
+  if (!isFormValid) {
+    alert("Please fill all required fields before ordering via WhatsApp.");
+    return;
+  }
+
+  const phoneNumber = "3195604589";
+  const baseUrl = "https://imzalocc.com";
+  const orderDetails = `
+🛍 *New Order*
+
+👤 Name: ${formData.firstName} ${formData.lastName}
+📧 Email: ${formData.email}
+📞 Phone: ${formData.phone}
+📍 Location: ${formData.street}
+
+🚚 Shipping Method: ${formData.shippingMethod}
+💳 Payment Method: ${formData.paymentMethod}
+
+🛒 *Items:*
+${cartItems.map(item => 
+  `• ${item.productName} x${item.quantity} - RS.${item.productPrice}
+   🔗 ${baseUrl}/product/${item.id}`
+).join("\n\n")}
+
+💰 Subtotal: RS.${itemsTotal}
+🚚 Shipping: RS.${calculatedShipping}
+💵 Total: RS.${grandTotal}
+`;
+
+  const encodedMessage = encodeURIComponent(orderDetails);
+  
+  window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, "_blank");
+};
   return (
     <>
     
@@ -482,8 +539,18 @@ const saveOrderToFirestore = async (e) => {
           <button type="submit" className="complete-order">
             Complete Order
           </button>
+          <p style={{textAlign:'center',margin:'10px'}}>OR</p>
+        <button 
+      type="button"
+      onClick={handleWhatsAppOrder}
+      className="complete-order-whatsapp"
+    >
+      Place order on WhatsApp <span></span>
+      <i className='fa-brands fa-whatsapp'></i>
+    </button>
     </div>
       </form>
+      
 
       <BottomBar />
       <Footer />

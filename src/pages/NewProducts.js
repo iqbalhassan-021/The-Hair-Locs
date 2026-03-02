@@ -150,7 +150,7 @@ const handleCategoryClick = (categoryName) => {
     return products.filter(product => product.productType === categoryName).length;
   };
 
- const addToCart = (product) => {
+const addToCart = (product) => {
   try {
     // 🚫 Prevent adding if out of stock
     if (product.stockStatus === "out") {
@@ -190,6 +190,18 @@ const handleCategoryClick = (categoryName) => {
 
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     window.dispatchEvent(new Event('toggle-cart'));
+
+    // ✅ Fire Meta AddToCart Event
+      if (window.fbq) {
+        console.log("Meta AddToCart Fired");
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_name: product.productName,
+          content_type: 'product',
+          value: actualPrice,
+          currency: 'PKR'
+        });
+      }
 
   } catch (error) {
     console.error('❌ Error adding to cart:', error);

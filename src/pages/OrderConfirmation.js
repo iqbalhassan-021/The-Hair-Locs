@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Navbar from "../components/navBar";
 import Footer from "../components/footer";
@@ -6,7 +6,20 @@ import Footer from "../components/footer";
 const OrderConfirmation = () => {
   const location = useLocation();
   const order = location.state?.orderData;
+  // 🔥 Fire Meta Purchase Event
+  useEffect(() => {
+    if (window.fbq && order) {
+      console.log('Fired Meta Purchase Event ')
+      window.fbq('track', 'Purchase', {
+        content_ids: order.cartItems.map(item => item.id),
+        content_type: 'product',
+        value: Number(order.pricing.total), // ensure numeric
+        currency: 'PKR'
+      });
 
+      console.log("Meta Purchase Fired", order);
+    }
+  }, [order]);
   if (!order) {
     return (
       <>

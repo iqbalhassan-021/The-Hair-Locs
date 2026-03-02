@@ -340,10 +340,16 @@ const fetchCategories = async () => {
 
 
           <p>Total: PKR {total.toFixed(2)}</p>
-
-          <Link to="/checkout" className="checkout-btn no-decoration">
+        {cartItems.length === 0 ? (
+          <p style={{textAlign:'center'}}>
+             
+          </p>
+        ) : (
+        <Link to="/checkout" className="checkout-btn no-decoration">
             Proceed to Checkout
           </Link>
+        )}
+         
         </div>
       </div>
 

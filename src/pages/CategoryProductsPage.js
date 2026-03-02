@@ -130,6 +130,18 @@ const addToCart = (product) => {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     window.dispatchEvent(new Event('toggle-cart'));
 
+    // ✅ Fire Meta AddToCart Event
+      if (window.fbq) {
+        console.log("Meta AddToCart Fired");
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_name: product.productName,
+          content_type: 'product',
+          value: actualPrice,
+          currency: 'PKR'
+        });
+      }
+
   } catch (error) {
     console.error('❌ Error adding to cart:', error);
     toast.error('Failed to add to cart.', { position: 'bottom-right' });

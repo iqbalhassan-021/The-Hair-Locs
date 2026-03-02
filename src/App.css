@@ -221,6 +221,30 @@
   border-radius: 3px;
   text-transform: capitalize;
 }
+
+.add-to-cart-button2{
+  height: auto;
+  width: auto;
+  padding: 20px 20px 20px 20px;
+  background-color: #0f0f0f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+
+  text-transform: capitalize;
+  min-height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0px !important;
+}
+.add-to-cart-button2:hover{
+  background-color: #000;
+  color: white;
+}
 .primary-button:hover{
   background-color: brown;
 }
@@ -2719,7 +2743,7 @@ video {
 .shopify-box {
   background: white;
   border: 1px solid #e1e1e1;
-  border-radius: 12px;
+  border-radius: 0px;
   padding: 16px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -3740,4 +3764,14 @@ ul.dropdown li a.navLink{
 
   max-height: 300px;
   overflow: scroll;
+}
+.new-devider{
+  height: auto;
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  gap: 20px;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy  } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import Navbar from '../components/navBar';
 import Footer from '../components/footer';
@@ -21,7 +21,7 @@ const Product = () => {
   const [products, setProducts] = useState([]);
   const [salePrice, setSalePrice] = useState(null);
   const [mainImage, setMainImage] = useState('');
-
+  const [quantity, setQuantity] = useState(1);
   const [showDetails, setShowDetails] = useState({
     type: false,
     code: false,
@@ -49,10 +49,10 @@ const Product = () => {
 
         const prodData = docSnap.data();
         setProduct({
-            id: docSnap.id,
-            ...prodData,
-            stockStatus: prodData.stockStatus ?? "in", // fallback if missing
-          });
+          id: docSnap.id,
+          ...prodData,
+          stockStatus: prodData.stockStatus ?? "in", // fallback if missing
+        });
 
         // set default main image
         setMainImage(prodData.productImage);
@@ -125,20 +125,76 @@ const Product = () => {
     fetchSiteInfo();
   }, []);
 
-  const addToCart = (product) => {
+const addToCart = (product) => {
+  try {
+    // 🚫 Prevent adding if out of stock
+    if (product.stockStatus === "out") {
+      toast.error("This product is currently out of stock.", {
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const actualPrice = product.salePrice || product.productPrice;
+
+    const existingProduct = existingCart.find(
+      item => item.id === product.id
+    );
+
+    const updatedCart = existingProduct
+      ? existingCart.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      : [
+          ...existingCart,
+          {
+            id: product.id,
+            productName: product.productName,
+            productPrice: actualPrice,
+            productImage: product.productImage,
+            productSize: product.productSize,
+            productColor: product.productColor,
+            productCode: product.productCode,
+            productType: product.productType,
+            quantity: 1,
+          },
+        ];
+
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event('toggle-cart'));
+
+    // ✅ Fire Meta AddToCart Event
+      if (window.fbq) {
+        console.log("Meta AddToCart Fired");
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_name: product.productName,
+          content_type: 'product',
+          value: actualPrice,
+          currency: 'PKR'
+        });
+      }
+
+  } catch (error) {
+    console.error('❌ Error adding to cart:', error);
+    toast.error('Failed to add to cart.', { position: 'bottom-right' });
+  }
+};
+  const buy_now = (product) => {
     try {
       const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
       const actualPrice = salePrice || product.productPrice;
 
-      let updatedCart;
-
+      // Check if item already exists to avoid duplicates
       const existingProduct = existingCart.find((item) => item.id === product.id);
+      let updatedCart;
 
       if (existingProduct) {
         updatedCart = existingCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
         updatedCart = [
@@ -152,61 +208,23 @@ const Product = () => {
             productColor: product.productColor || "Not Specified",
             productCode: product.productCode,
             productType: product.productType,
-            quantity: 1,
+            quantity: quantity,
           },
         ];
       }
 
+      // Save to storage
       localStorage.setItem("cart", JSON.stringify(updatedCart));
-      
-       window.dispatchEvent(new Event('toggle-cart'));
+
+      // Optional: If your App uses a Context or Redux for cart state, 
+      // you might need to trigger an update here so the CheckoutPage 
+      // sees the new item immediately.
+
+      navigate('/checkout');
     } catch (error) {
-      console.error("❌ Error adding to cart:", error);
-      toast.error("Failed to add to cart.", { position: "bottom-right" });
+      console.error("❌ Buy Now failed:", error);
     }
   };
-const buy_now = (product) => {
-  try {
-    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-    const actualPrice = salePrice || product.productPrice;
-
-    // Check if item already exists to avoid duplicates
-    const existingProduct = existingCart.find((item) => item.id === product.id);
-    let updatedCart;
-
-    if (existingProduct) {
-      updatedCart = existingCart.map((item) =>
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      );
-    } else {
-      updatedCart = [
-        ...existingCart,
-        {
-          id: product.id,
-          productName: product.productName,
-          productPrice: actualPrice,
-          productImage: product.productImage,
-          productSize: product.productSize || "Not Specified",
-          productColor: product.productColor || "Not Specified",
-          productCode: product.productCode,
-          productType: product.productType,
-          quantity: 1,
-        },
-      ];
-    }
-
-    // Save to storage
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    // Optional: If your App uses a Context or Redux for cart state, 
-    // you might need to trigger an update here so the CheckoutPage 
-    // sees the new item immediately.
-    
-    navigate('/checkout');
-  } catch (error) {
-    console.error("❌ Buy Now failed:", error);
-  }
-};
   if (loading) return <p>Loading...</p>;
   if (!product) return <p>No product found</p>;
 
@@ -216,13 +234,13 @@ const buy_now = (product) => {
     product.productImage2,
     product.productImage3,
   ].filter(Boolean);
-const isOutOfStock = product.stockStatus === "out";
+  const isOutOfStock = product.stockStatus === "out";
 
   return (
     <>
-   
-        <Navbar />
-    
+
+      <Navbar />
+
 
       <div className="quick-buy">
         <div className="cover">
@@ -237,29 +255,29 @@ const isOutOfStock = product.stockStatus === "out";
                       style={{ width: "100%", maxHeight: "400px", objectFit: "contain" }}
                     />
                   </div>
-<div className="thumbnail-row" style={{ marginTop: "10px" }}>
-  {images
-    ?.filter(img => img && img.trim() !== "")
-    .map((img, idx) => (
-      <img
-        key={idx}
-        src={img}
-        alt={`thumb-${idx}`}
-        onClick={() => setMainImage(img)}
-        onError={(e) => {
-          e.target.style.display = "none";
-        }}
-        style={{
-          width: "60px",
-          height: "60px",
-          margin: "5px",
-          cursor: "pointer",
-          border: mainImage === img ? "2px solid black" : "1px solid #ccc",
-          objectFit: "cover",
-        }}
-      />
-    ))}
-</div>
+                  <div className="thumbnail-row" style={{ marginTop: "10px" }}>
+                    {images
+                      ?.filter(img => img && img.trim() !== "")
+                      .map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`thumb-${idx}`}
+                          onClick={() => setMainImage(img)}
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            margin: "5px",
+                            cursor: "pointer",
+                            border: mainImage === img ? "2px solid black" : "1px solid #ccc",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ))}
+                  </div>
 
                 </>
               )}
@@ -269,25 +287,120 @@ const isOutOfStock = product.stockStatus === "out";
               <p className="title">{product.productName}
               </p>
               <p className="category">{product.categoryId}</p>
-             
+
               <br />
               <p className="price">
                 {salePrice ? (
                   <>
                     <span className="original-price">
-                      From {currency}
+                      {currency}.
                       {product.productPrice}
                     </span>
                     <span className="sale-price">
                       {" "}
-                      {currency}
+                      {currency}.
                       {salePrice}
                     </span>
                   </>
                 ) : (
-                  <>From {currency}{product.productPrice}</>
+                  <> {currency}.{product.productPrice}</>
                 )}
               </p>
+              <br />
+              {products
+                .filter((pay) => pay.productCode === product.productCode)
+                .map((pay) =>
+                  isOutOfStock ? (
+                    <div
+                      style={{
+                        marginTop: "15px",
+                        padding: "12px",
+                        background: "#fee2e2",
+                        color: "#991b1b",
+                        borderRadius: "6px",
+                        textAlign: "center",
+                        fontWeight: "600",
+                      }}
+                    >
+                      ❌ This product is currently Out of Stock
+                    </div>
+                  ) : (
+                    <>
+                      <div className='new-devider' >
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid black',
+                          width: 'fit-content'
+                        }}>
+
+                          <button
+                            onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                            style={{
+                              background: 'white',
+                              border: 'none',
+                              fontSize: '28px',
+                              padding: '5px 15px',
+                              cursor: 'pointer',
+                              color: 'black'
+                            }}
+                          >
+                            -
+                          </button>
+
+                          <span style={{ padding: '0 15px', fontWeight: '700' }}>
+                            {quantity}
+                          </span>
+
+                          <button
+                            onClick={() => setQuantity(prev => prev + 1)}
+                            style={{
+                              background: 'white',
+                              border: 'none',
+                              fontSize: '22px',
+                              padding: '5px 15px',
+                              cursor: 'pointer',
+                              color: 'black'
+                            }}
+                          >
+                            +
+                          </button>
+
+                        </div>
+                        <button
+                          className="add-to-cart-button2"
+                          style={
+                            {
+                              background: 'white',
+                              border: '1px solid black',
+                              cursor: 'pointer',
+                              color: 'black',
+
+                            }
+                          }
+                          onClick={(e) => {
+                            e.preventDefault();
+                            addToCart(product);
+                          }}
+                        >
+                          <p>Add to Cart</p>
+                          <i className="fas fa-shopping-cart"></i>
+                        </button>
+                      </div>
+
+                      <button
+                        className="primary-button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          buy_now(product);
+                        }}
+                      >
+                        <p>Buy Now</p>
+                        <i className="fas fa-shopping-bag"></i>
+                      </button>
+                    </>
+                  )
+                )}
               <br />
 
               {/* Details sections (color, size, etc.) */}
@@ -352,48 +465,7 @@ const isOutOfStock = product.stockStatus === "out";
                 </div>
               </div>
 
-            {products
-  .filter((pay) => pay.productCode === product.productCode)
-  .map((pay) =>
-    isOutOfStock ? (
-      <div
-        style={{
-          marginTop: "15px",
-          padding: "12px",
-          background: "#fee2e2",
-          color: "#991b1b",
-          borderRadius: "6px",
-          textAlign: "center",
-          fontWeight: "600",
-        }}
-      >
-        ❌ This product is currently Out of Stock
-      </div>
-    ) : (
-      <>
-      <button
-        className="primary-button"
-        onClick={(e) => {
-          e.preventDefault();
-          addToCart(product);
-        }}
-      >
-        <p>Add to Cart</p>
-        <i className="fas fa-shopping-cart"></i>
-      </button>
-      <button
-        className="primary-button"
-        onClick={(e) => {
-          e.preventDefault();
-          buy_now(product);
-        }}
-      >
-        <p>Buy Now</p>
-        <i className="fas fa-shopping-bag"></i>
-      </button>
-      </>
-    )
-  )}
+
 
             </div>
           </div>

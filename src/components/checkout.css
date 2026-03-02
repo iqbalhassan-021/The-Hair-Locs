@@ -59,7 +59,8 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 16px;
+  min-height: 60px;
 }
 .checkout-section select {
   width: 100%;
@@ -68,6 +69,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   box-sizing: border-box;
+  min-height: 60px;
 }
 .checkout-section textarea {
   width: 100%;
@@ -185,6 +187,7 @@
   border-radius: 6px;
   margin-bottom: 10px;
   background-color: #fff;
+  min-height: 50px;
 }
 .billing-form input {
   width: 100%;
@@ -358,3 +361,16 @@
   outline-offset: 2px;
 }
 
+.complete-order-whatsapp{
+  background: green;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: 1px solid green;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  gap: 20px;
+}

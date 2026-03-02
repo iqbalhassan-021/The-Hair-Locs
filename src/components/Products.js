@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-
+import { toast } from 'react-toastify';
 const ProductShowcase = () => {
   const [products, setProducts] = useState([]);
   const [selectedProductType, setSelectedProductType] = useState('');
@@ -51,40 +51,60 @@ const ProductShowcase = () => {
 
 const addToCart = (product) => {
   try {
-    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-
-    let updatedCart;
-    const existingProduct = existingCart.find(item => item.id === product.id);
-
-    if (existingProduct) {
-      updatedCart = existingCart.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    } else {
-      updatedCart = [
-        ...existingCart,
-        {
-          id: product.id,
-          productName: product.productName,
-          productPrice: product.productPrice,
-          productImage: product.productImage,
-          productSize: product.productSize,
-          productColor: product.productColor,
-          productCode: product.productCode,
-          productType: product.productType,
-          quantity: 1,
-        },
-      ];
+    // 🚫 Prevent adding if out of stock
+    if (product.stockStatus === "out") {
+      toast.error("This product is currently out of stock.", {
+        position: "bottom-right",
+      });
+      return;
     }
 
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const actualPrice = product.salePrice || product.productPrice;
+
+    const existingProduct = existingCart.find(
+      item => item.id === product.id
+    );
+
+    const updatedCart = existingProduct
+      ? existingCart.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      : [
+          ...existingCart,
+          {
+            id: product.id,
+            productName: product.productName,
+            productPrice: actualPrice,
+            productImage: product.productImage,
+            productSize: product.productSize,
+            productColor: product.productColor,
+            productCode: product.productCode,
+            productType: product.productType,
+            quantity: 1,
+          },
+        ];
+
     localStorage.setItem('cart', JSON.stringify(updatedCart));
-    
-    console.log('✅ Cart saved:', updatedCart); // ADD THIS
-    alert(`${product.productName} added to cart!`);
+    window.dispatchEvent(new Event('toggle-cart'));
+
+    // ✅ Fire Meta AddToCart Event
+      if (window.fbq) {
+        console.log("Meta AddToCart Fired");
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_name: product.productName,
+          content_type: 'product',
+          value: actualPrice,
+          currency: 'PKR'
+        });
+      }
+
   } catch (error) {
     console.error('❌ Error adding to cart:', error);
+    toast.error('Failed to add to cart.', { position: 'bottom-right' });
   }
 };
 
