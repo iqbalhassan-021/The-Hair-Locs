@@ -10,7 +10,9 @@ import 'react-toastify/dist/ReactToastify.css';
 const OnSalePage = () => {
   const [products, setProducts] = useState([]);
   const [selectedProductType, setSelectedProductType] = useState('');
-
+useEffect(() => {
+  window.scrollTo(0, 0);
+}, []);
   useEffect(() => {
     const fetchData = async () => {
       const db = getFirestore();

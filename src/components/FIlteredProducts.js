@@ -6,12 +6,12 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const ITEMS_PER_LOAD = 8;
 
-const AllProducts = () => {
+const FIlteredProducts = () => {
   const [products, setProducts] = useState([]);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loadingMore, setLoadingMore] = useState(false);
   const observer = useRef();
-
+  const [priceSort, setPriceSort] = useState("");
   
 useEffect(() => {
   const fetchAllProducts = async () => {
@@ -172,14 +172,45 @@ const addToCart = (product) => {
 };
 
   const skeletons = Array.from({ length: ITEMS_PER_LOAD });
+const sortedProducts = [...products].sort((a, b) => {
+  const priceA = a.salePrice || a.productPrice;
+  const priceB = b.salePrice || b.productPrice;
 
+  if (priceSort === "low-high") {
+    return priceA - priceB;
+  }
+
+  if (priceSort === "high-low") {
+    return priceB - priceA;
+  }
+
+  return 0;
+});
   return (
     <>
       <div className="product-container">
         <div className="body-cover">
           <div className="products">
-         
-
+               <div className='new-filter' style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexDirection:'row',
+                  }}>
+                    <p></p>
+         <div style={{ marginBottom: "20px",  display: 'flex', alignItems: 'center' }}>
+  <p style={{marginRight:'10px'}}>  Filter Products </p>
+  <select
+    value={priceSort}
+    onChange={(e) => setPriceSort(e.target.value)}
+    style={{ padding: "8px", cursor: "pointer" }}
+  >
+    <option value="">Sort By Price</option>
+    <option value="low-high">Price: Low to High</option>
+    <option value="high-low">Price: High to Low</option>
+  </select>
+</div>
+</div>
             <div className="grid-4x">
               {products.length === 0 ? (
                 skeletons.map((_, i) => (
@@ -190,7 +221,7 @@ const addToCart = (product) => {
                   </div>
                 ))
               ) : (
-                products.slice(0, visibleCount).map((product, index) => {
+                sortedProducts.slice(0, visibleCount).map((product, index) => {
                   const isLast = index === visibleCount - 1;
 
                   return (
@@ -281,4 +312,4 @@ const addToCart = (product) => {
   );
 };
 
-export default AllProducts;
+export default FIlteredProducts;

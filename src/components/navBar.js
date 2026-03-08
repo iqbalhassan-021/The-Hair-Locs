@@ -207,7 +207,6 @@ const fetchCategories = async () => {
                 <Link to="/" className='no-decoration navLink'><p>Home</p></Link>
                 <Link to="/About" className='no-decoration navLink'><p>About</p></Link>
                 <Link to="/Sale" className='no-decoration navLink'><p>Sale</p></Link>
-                <Link to="/ForHer" className='no-decoration navLink'><p>For Her</p></Link>
                 <Link to="/Contact" className='no-decoration navLink'><p>Contact</p></Link>
               </div>
               <div className="nav-container logo-holder">
@@ -236,6 +235,8 @@ const fetchCategories = async () => {
 
             {/* Mobile Nav */}
             <div className="mobile-nav" id="mobilenav">
+              <Link to="/" className="no-decoration navLink"><p>Home</p></Link>
+              <Link to="/Products" className="no-decoration navLink"><p>All Products</p></Link>
               <Link to="/Sale" className="no-decoration navLink"><p>Sale</p></Link>
                 <Link to="/category/face mask" className="no-decoration navLink"><p>Face Mask</p></Link>
               {/* Women Dropdown */}
